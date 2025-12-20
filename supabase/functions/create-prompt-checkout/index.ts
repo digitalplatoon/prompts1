@@ -71,7 +71,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/prompt/${promptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&prompt_id=${promptId}`,
       cancel_url: `${req.headers.get("origin")}/prompt/${promptId}?payment=cancelled`,
       metadata: {
         prompt_id: promptId,
