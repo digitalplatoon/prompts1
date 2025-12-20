@@ -1,1 +1,7 @@
 project_id = "sbxowmgnsrcinqajgvrp"
+
+[functions.create-prompt-checkout]
+verify_jwt = false
+
+[functions.verify-prompt-payment]
+verify_jwt = false
