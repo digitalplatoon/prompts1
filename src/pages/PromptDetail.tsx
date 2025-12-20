@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { prompts, categories } from '@/data/prompts';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const PromptDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const prompt = prompts.find((p) => p.id === id);
   const category = categories.find((c) => c.id === prompt?.category);
@@ -20,6 +21,40 @@ const PromptDetail = () => {
   const [checkingPurchase, setCheckingPurchase] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Handle payment success verification
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const paymentStatus = searchParams.get('payment');
+      const sessionId = searchParams.get('session_id');
+      
+      if (paymentStatus === 'success' && sessionId && user && id) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const response = await supabase.functions.invoke('verify-prompt-payment', {
+            body: { sessionId, promptId: id },
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          });
+          
+          if (response.data?.verified) {
+            setIsPurchased(true);
+            toast({
+              title: 'Purchase successful!',
+              description: `${prompt?.title} has been added to your library.`,
+            });
+            // Clean up URL params
+            navigate(`/prompt/${id}`, { replace: true });
+          }
+        } catch (error) {
+          console.error('Payment verification error:', error);
+        }
+      }
+    };
+    
+    verifyPayment();
+  }, [searchParams, user, id, prompt?.title, toast, navigate]);
 
   useEffect(() => {
     const checkPurchaseStatus = async () => {
@@ -92,39 +127,34 @@ const PromptDetail = () => {
     setPurchasing(true);
 
     try {
-      const { error } = await supabase
-        .from('purchased_prompts')
-        .insert({
-          user_id: user.id,
-          prompt_id: prompt.id,
-          price: prompt.price,
-        });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('create-prompt-checkout', {
+        body: {
+          promptId: prompt.id,
+          promptTitle: prompt.title,
+          promptPrice: prompt.price,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast({
-            title: 'Already purchased',
-            description: 'You already own this prompt.',
-          });
-          setIsPurchased(true);
-        } else {
-          throw error;
-        }
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
       } else {
-        setIsPurchased(true);
-        toast({
-          title: 'Purchase successful!',
-          description: `${prompt.title} has been added to your library.`,
-        });
+        throw new Error('No checkout URL returned');
       }
     } catch (error) {
-      console.error('Purchase error:', error);
+      console.error('Checkout error:', error);
       toast({
-        title: 'Purchase failed',
+        title: 'Checkout failed',
         description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
-    } finally {
       setPurchasing(false);
     }
   };
