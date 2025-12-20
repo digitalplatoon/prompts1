@@ -1,18 +1,46 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { prompts, categories } from '@/data/prompts';
-import { Star, ArrowLeft, Copy, ShoppingCart, CheckCircle, User } from 'lucide-react';
+import { Star, ArrowLeft, Copy, ShoppingCart, CheckCircle, User, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const PromptDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const prompt = prompts.find((p) => p.id === id);
   const category = categories.find((c) => c.id === prompt?.category);
   const [copied, setCopied] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
+  const [checkingPurchase, setCheckingPurchase] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const checkPurchaseStatus = async () => {
+      if (!user || !id) {
+        setCheckingPurchase(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('purchased_prompts')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('prompt_id', id)
+        .maybeSingle();
+
+      setIsPurchased(!!data);
+      setCheckingPurchase(false);
+    };
+
+    checkPurchaseStatus();
+  }, [user, id]);
 
   if (!prompt) {
     return (
@@ -42,11 +70,63 @@ const PromptDetail = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleBuy = () => {
+  const handleCopyFullPrompt = () => {
+    navigator.clipboard.writeText(prompt.fullPrompt);
     toast({
-      title: 'Added to Cart!',
-      description: `${prompt.title} has been added to your cart.`,
+      title: 'Full Prompt Copied!',
+      description: 'The complete prompt has been copied to your clipboard.',
     });
+  };
+
+  const handleBuy = async () => {
+    if (!user) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to purchase prompts.',
+        variant: 'destructive',
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setPurchasing(true);
+
+    try {
+      const { error } = await supabase
+        .from('purchased_prompts')
+        .insert({
+          user_id: user.id,
+          prompt_id: prompt.id,
+          price: prompt.price,
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: 'Already purchased',
+            description: 'You already own this prompt.',
+          });
+          setIsPurchased(true);
+        } else {
+          throw error;
+        }
+      } else {
+        setIsPurchased(true);
+        toast({
+          title: 'Purchase successful!',
+          description: `${prompt.title} has been added to your library.`,
+        });
+      }
+    } catch (error) {
+      console.error('Purchase error:', error);
+      toast({
+        title: 'Purchase failed',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   // Sample reviews data
@@ -131,6 +211,30 @@ const PromptDetail = () => {
                 </div>
               </div>
 
+              {/* Full Prompt Section (only show if purchased) */}
+              {isPurchased && (
+                <div className="card-glass border-2 border-primary/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-5 h-5 text-primary" />
+                      <h2 className="text-xl font-semibold">Full Prompt</h2>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyFullPrompt}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Full Prompt
+                    </Button>
+                  </div>
+                  <div className="bg-muted/50 rounded-xl p-4 font-mono text-sm whitespace-pre-wrap">
+                    {prompt.fullPrompt}
+                  </div>
+                </div>
+              )}
+
               {/* Preview Section */}
               <div className="card-glass">
                 <div className="flex items-center justify-between mb-4">
@@ -152,9 +256,11 @@ const PromptDetail = () => {
                 <div className="bg-muted/50 rounded-xl p-4 font-mono text-sm text-muted-foreground">
                   {prompt.preview}
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  * This is a preview. Purchase to get the full prompt with all variables.
-                </p>
+                {!isPurchased && (
+                  <p className="text-xs text-muted-foreground mt-3">
+                    * This is a preview. Purchase to get the full prompt with all variables.
+                  </p>
+                )}
               </div>
 
               {/* Usage Instructions */}
@@ -234,10 +340,39 @@ const PromptDetail = () => {
                   <p className="text-sm text-muted-foreground">One-time purchase</p>
                 </div>
 
-                <Button onClick={handleBuy} className="btn-gradient w-full mb-4 py-6 text-lg glow">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Buy Now
-                </Button>
+                {checkingPurchase ? (
+                  <Button disabled className="w-full mb-4 py-6 text-lg">
+                    Checking...
+                  </Button>
+                ) : isPurchased ? (
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center justify-center gap-2 py-4 px-6 bg-emerald-500/10 text-emerald-500 rounded-xl font-semibold">
+                      <CheckCircle className="w-5 h-5" />
+                      Owned
+                    </div>
+                    <Link to="/my-prompts" className="block">
+                      <Button variant="outline" className="w-full">
+                        <Package className="w-4 h-4 mr-2" />
+                        View in Library
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleBuy} 
+                    className="btn-gradient w-full mb-4 py-6 text-lg glow"
+                    disabled={purchasing}
+                  >
+                    {purchasing ? (
+                      'Processing...'
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Buy Now
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 <div className="space-y-3 pt-6 border-t border-border/50">
                   <div className="flex items-center gap-3 text-sm">
