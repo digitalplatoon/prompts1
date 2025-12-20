@@ -1,0 +1,283 @@
+import { useParams, Link } from 'react-router-dom';
+import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+import { prompts, categories } from '@/data/prompts';
+import { Star, ArrowLeft, Copy, ShoppingCart, CheckCircle, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
+const PromptDetail = () => {
+  const { id } = useParams();
+  const prompt = prompts.find((p) => p.id === id);
+  const category = categories.find((c) => c.id === prompt?.category);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  if (!prompt) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-32 text-center">
+          <h1 className="text-4xl font-bold mb-4">Prompt Not Found</h1>
+          <p className="text-muted-foreground mb-8">
+            The prompt you're looking for doesn't exist.
+          </p>
+          <Link to="/browse">
+            <Button className="btn-gradient">Browse All Prompts</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const handleCopyPreview = () => {
+    navigator.clipboard.writeText(prompt.preview);
+    setCopied(true);
+    toast({
+      title: 'Preview Copied!',
+      description: 'The prompt preview has been copied to your clipboard.',
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleBuy = () => {
+    toast({
+      title: 'Added to Cart!',
+      description: `${prompt.title} has been added to your cart.`,
+    });
+  };
+
+  // Sample reviews data
+  const reviews = [
+    {
+      id: 1,
+      author: 'Sarah K.',
+      rating: 5,
+      date: '2 days ago',
+      comment: 'Incredible prompt! Saved me hours of work. The outputs are consistently high quality.',
+    },
+    {
+      id: 2,
+      author: 'Mike R.',
+      rating: 5,
+      date: '1 week ago',
+      comment: 'Best investment I made for my AI workflow. Highly recommended!',
+    },
+    {
+      id: 3,
+      author: 'Jessica L.',
+      rating: 4,
+      date: '2 weeks ago',
+      comment: 'Great prompt with excellent instructions. Would love more example outputs.',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+
+      <main className="pt-24 pb-20">
+        <div className="container mx-auto px-4">
+          {/* Back Button */}
+          <Link
+            to="/browse"
+            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Browse
+          </Link>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Header */}
+              <div className="card-glass">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="category-badge">
+                    <span className="mr-1.5">{category?.icon}</span>
+                    {category?.name}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < Math.floor(prompt.rating)
+                            ? 'fill-yellow-500 text-yellow-500'
+                            : 'text-muted'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {prompt.rating} ({prompt.reviews} reviews)
+                    </span>
+                  </div>
+                </div>
+
+                <h1 className="text-3xl md:text-4xl font-bold mb-4">{prompt.title}</h1>
+                <p className="text-lg text-muted-foreground">{prompt.description}</p>
+
+                <div className="flex flex-wrap gap-2 mt-6">
+                  {prompt.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview Section */}
+              <div className="card-glass">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Prompt Preview</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyPreview}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {copied ? (
+                      <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-4 h-4 mr-2" />
+                    )}
+                    {copied ? 'Copied!' : 'Copy Preview'}
+                  </Button>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-4 font-mono text-sm text-muted-foreground">
+                  {prompt.preview}
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  * This is a preview. Purchase to get the full prompt with all variables.
+                </p>
+              </div>
+
+              {/* Usage Instructions */}
+              <div className="card-glass">
+                <h2 className="text-xl font-semibold mb-4">Usage Instructions</h2>
+                <ol className="space-y-3">
+                  {prompt.usageInstructions.map((instruction, index) => (
+                    <li key={index} className="flex gap-3">
+                      <span className="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="text-muted-foreground">{instruction}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Example Outputs */}
+              <div className="card-glass">
+                <h2 className="text-xl font-semibold mb-4">Example Outputs</h2>
+                <div className="space-y-3">
+                  {prompt.exampleOutputs.map((output, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl"
+                    >
+                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{output}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="card-glass">
+                <h2 className="text-xl font-semibold mb-6">Customer Reviews</h2>
+                <div className="space-y-6">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-b border-border/50 pb-6 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <div className="font-medium">{review.author}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < review.rating
+                                      ? 'fill-yellow-500 text-yellow-500'
+                                      : 'text-muted'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">{review.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="card-glass sticky top-28">
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold gradient-text mb-2">
+                    ${prompt.price}
+                  </div>
+                  <p className="text-sm text-muted-foreground">One-time purchase</p>
+                </div>
+
+                <Button onClick={handleBuy} className="btn-gradient w-full mb-4 py-6 text-lg glow">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Buy Now
+                </Button>
+
+                <div className="space-y-3 pt-6 border-t border-border/50">
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-muted-foreground">Instant download</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-muted-foreground">Lifetime access</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-muted-foreground">Free updates</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-muted-foreground">30-day money-back guarantee</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">Created by</div>
+                      <div className="text-sm text-primary">{prompt.author}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default PromptDetail;
