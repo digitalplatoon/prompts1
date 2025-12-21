@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { SocialShareButtons } from '@/components/SocialShareButtons';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
 const PromptDetail = () => {
   const { id } = useParams();
@@ -205,25 +207,31 @@ const PromptDetail = () => {
             <div className="lg:col-span-2 space-y-8">
               {/* Header */}
               <div className="card-glass">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="category-badge">
-                    <span className="mr-1.5">{category?.icon}</span>
-                    {category?.name}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.floor(prompt.rating)
-                            ? 'fill-yellow-500 text-yellow-500'
-                            : 'text-muted'
-                        }`}
-                      />
-                    ))}
-                    <span className="text-sm text-muted-foreground ml-2">
-                      {prompt.rating} ({prompt.reviews} reviews)
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="category-badge">
+                      <span className="mr-1.5">{category?.icon}</span>
+                      {category?.name}
                     </span>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < Math.floor(prompt.rating)
+                              ? 'fill-yellow-500 text-yellow-500'
+                              : 'text-muted'
+                          }`}
+                        />
+                      ))}
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {prompt.rating} ({prompt.reviews} reviews)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FavoriteButton promptId={prompt.id} />
+                    <SocialShareButtons title={prompt.title} />
                   </div>
                 </div>
 
