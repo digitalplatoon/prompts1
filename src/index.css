@@ -183,4 +183,13 @@
   .copy-code-button.copied .check-icon {
     @apply block text-green-500;
   }
+
+  /* Highlight.js theme overrides */
+  .hljs {
+    @apply bg-muted rounded-lg p-4 overflow-x-auto;
+  }
+
+  pre code.hljs {
+    @apply bg-transparent p-0;
+  }
 }

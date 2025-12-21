@@ -10,6 +10,7 @@ import { ReadingProgress } from "@/components/ReadingProgress";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { TableOfContents, calculateReadingTime } from "@/components/TableOfContents";
 import { useCodeBlockCopy } from "@/components/CodeBlock";
+import { BlogBookmarkButton } from "@/components/BlogBookmarkButton";
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from "@/data/blogPosts";
 import { useEffect, useMemo } from "react";
 
@@ -150,7 +151,10 @@ const BlogPost = () => {
                       <p className="text-sm text-muted-foreground">Author</p>
                     </div>
                   </div>
-                  <SocialShareButtons title={post.title} url={currentUrl} />
+                  <div className="flex items-center gap-3">
+                    <BlogBookmarkButton slug={slug!} title={post.title} />
+                    <SocialShareButtons title={post.title} url={currentUrl} />
+                  </div>
                 </div>
               </div>
             </div>
