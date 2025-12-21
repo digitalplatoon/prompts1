@@ -3,16 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, ArrowRight, BookOpen, Search, X } from "lucide-react";
+import { Calendar, User, ArrowRight, BookOpen, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { blogPosts, getFeaturedPost, getCategories } from "@/data/blogPosts";
 
+const POSTS_PER_PAGE = 6;
+
 const Blog = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   
   const categories = getCategories();
   const featuredPost = getFeaturedPost();
@@ -29,13 +32,29 @@ const Blog = () => {
   }, [selectedCategory, searchQuery]);
 
   const showFeatured = selectedCategory === "All" && searchQuery === "" && featuredPost;
-  const displayPosts = showFeatured 
+  const postsWithoutFeatured = showFeatured 
     ? filteredPosts.filter(post => !post.featured) 
     : filteredPosts;
+
+  // Pagination logic
+  const totalPages = Math.ceil(postsWithoutFeatured.length / POSTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+  const displayPosts = postsWithoutFeatured.slice(startIndex, startIndex + POSTS_PER_PAGE);
 
   const clearFilters = () => {
     setSelectedCategory("All");
     setSearchQuery("");
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
   };
 
   const hasActiveFilters = selectedCategory !== "All" || searchQuery !== "";
@@ -71,7 +90,7 @@ const Blog = () => {
                 type="text"
                 placeholder="Search articles by title or content..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 pr-10"
               />
               {searchQuery && (
@@ -92,7 +111,7 @@ const Blog = () => {
                 key={category}
                 variant={category === selectedCategory ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryChange(category)}
               >
                 {category}
               </Button>
@@ -209,6 +228,43 @@ const Blog = () => {
               </p>
               <Button variant="outline" onClick={clearFilters}>
                 Clear Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && displayPosts.length > 0 && (
+            <div className="flex items-center justify-center gap-2 mt-12">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => setCurrentPage(page)}
+                    className="w-10 h-10"
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}
