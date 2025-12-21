@@ -8,14 +8,20 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ReadingProgress } from "@/components/ReadingProgress";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
+import { TableOfContents, calculateReadingTime } from "@/components/TableOfContents";
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from "@/data/blogPosts";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const post = slug ? getBlogPostBySlug(slug) : undefined;
   const relatedPosts = slug ? getRelatedPosts(slug, 3) : [];
+
+  // Calculate reading time based on actual content
+  const readingTime = useMemo(() => {
+    return post ? calculateReadingTime(post.content) : "0 min read";
+  }, [post]);
 
   // Find previous and next posts for navigation
   const currentIndex = blogPosts.findIndex(p => p.slug === slug);
@@ -90,49 +96,59 @@ const BlogPost = () => {
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {post.readTime}
+                {readingTime}
               </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Article Content */}
+      {/* Article Content with TOC Sidebar */}
       <article className="py-12 px-4">
-        <div className="container mx-auto max-w-3xl">
-          <div 
-            className="prose prose-lg dark:prose-invert max-w-none
-              prose-headings:font-bold prose-headings:text-foreground
-              prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4
-              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-              prose-p:text-muted-foreground prose-p:leading-relaxed
-              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-foreground
-              prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-              prose-pre:bg-muted prose-pre:border prose-pre:border-border
-              prose-ul:text-muted-foreground prose-ol:text-muted-foreground
-              prose-li:marker:text-primary
-              prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
-              prose-table:border prose-table:border-border
-              prose-th:bg-muted prose-th:p-3 prose-th:text-foreground
-              prose-td:p-3 prose-td:border-t prose-td:border-border"
-            dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
-          />
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex gap-12">
+            {/* Table of Contents Sidebar - Hidden on mobile */}
+            <aside className="hidden lg:block w-64 shrink-0">
+              <TableOfContents content={post.content} />
+            </aside>
 
-          {/* Author and Share Section */}
-          <div className="mt-12 pt-8 border-t border-border">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={post.authorAvatar} alt={post.author} />
-                  <AvatarFallback>{post.author[0]}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold">{post.author}</p>
-                  <p className="text-sm text-muted-foreground">Author</p>
+            {/* Main Content */}
+            <div className="flex-1 max-w-3xl">
+              <div 
+                className="prose prose-lg dark:prose-invert max-w-none
+                  prose-headings:font-bold prose-headings:text-foreground
+                  prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4
+                  prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+                  prose-p:text-muted-foreground prose-p:leading-relaxed
+                  prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                  prose-strong:text-foreground
+                  prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+                  prose-pre:bg-muted prose-pre:border prose-pre:border-border
+                  prose-ul:text-muted-foreground prose-ol:text-muted-foreground
+                  prose-li:marker:text-primary
+                  prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
+                  prose-table:border prose-table:border-border
+                  prose-th:bg-muted prose-th:p-3 prose-th:text-foreground
+                  prose-td:p-3 prose-td:border-t prose-td:border-border"
+                dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+              />
+
+              {/* Author and Share Section */}
+              <div className="mt-12 pt-8 border-t border-border">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={post.authorAvatar} alt={post.author} />
+                      <AvatarFallback>{post.author[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{post.author}</p>
+                      <p className="text-sm text-muted-foreground">Author</p>
+                    </div>
+                  </div>
+                  <SocialShareButtons title={post.title} url={currentUrl} />
                 </div>
               </div>
-              <SocialShareButtons title={post.title} url={currentUrl} />
             </div>
           </div>
         </div>
@@ -235,12 +251,24 @@ const BlogPost = () => {
   );
 };
 
-// Simple markdown-like content formatter
+// Simple markdown-like content formatter with heading IDs for TOC
 function formatContent(content: string): string {
-  return content
-    // Headers
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+  const lines = content.split('\n');
+  let lineIndex = 0;
+  
+  return lines.map((line, idx) => {
+    lineIndex = idx;
+    return line;
+  }).join('\n')
+    // Headers with IDs for TOC linking
+    .replace(/^### (.*$)/gim, (match, p1, offset) => {
+      const lineNum = content.substring(0, offset).split('\n').length - 1;
+      return `<h3 id="heading-${lineNum}">${p1}</h3>`;
+    })
+    .replace(/^## (.*$)/gim, (match, p1, offset) => {
+      const lineNum = content.substring(0, offset).split('\n').length - 1;
+      return `<h2 id="heading-${lineNum}">${p1}</h2>`;
+    })
     // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     // Code blocks
