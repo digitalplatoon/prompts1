@@ -24,6 +24,7 @@ import SubmitPrompt from "./pages/SubmitPrompt";
 import Pricing from "./pages/Pricing";
 import Api from "./pages/Api";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Careers from "./pages/Careers";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/api" element={<Api />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
