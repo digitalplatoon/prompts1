@@ -12,6 +12,19 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[CREATE-PROMPT-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Server-side price map - source of truth for prompt pricing
+// This prevents price manipulation attacks where clients could send arbitrary prices
+const PROMPT_PRICES: Record<string, { price: number; title: string }> = {
+  '1': { price: 9.99, title: 'Ultimate Blog Post Generator' },
+  '2': { price: 14.99, title: 'Cinematic Scene Generator' },
+  '3': { price: 12.99, title: 'Code Review Assistant' },
+  '4': { price: 19.99, title: 'Marketing Campaign Planner' },
+  '5': { price: 24.99, title: 'Business Plan Generator' },
+  '6': { price: 11.99, title: 'Fantasy World Builder' },
+  '7': { price: 8.99, title: 'Claude Research Assistant' },
+  '8': { price: 13.99, title: 'Product Photography Style' },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,6 +44,24 @@ serve(async (req) => {
     if (!promptId || !promptTitle || !promptPrice) {
       throw new Error("Missing required fields: promptId, promptTitle, promptPrice");
     }
+
+    // Server-side price validation - prevent price manipulation attacks
+    const validPrompt = PROMPT_PRICES[promptId];
+    if (!validPrompt) {
+      logStep("ERROR: Invalid prompt ID", { promptId });
+      throw new Error("Invalid prompt ID");
+    }
+
+    if (validPrompt.price !== promptPrice) {
+      logStep("ERROR: Price mismatch detected", { 
+        providedPrice: promptPrice, 
+        actualPrice: validPrompt.price,
+        promptId 
+      });
+      throw new Error("Price mismatch - please refresh and try again");
+    }
+
+    logStep("Price validation passed", { promptId, price: validPrompt.price });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -53,7 +84,7 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Create a one-time payment session with price_data for dynamic pricing
+    // Create a one-time payment session with validated server-side price
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -62,10 +93,10 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: promptTitle,
-              description: `AI Prompt: ${promptTitle}`,
+              name: validPrompt.title,
+              description: `AI Prompt: ${validPrompt.title}`,
             },
-            unit_amount: Math.round(promptPrice * 100), // Convert to cents
+            unit_amount: Math.round(validPrompt.price * 100), // Use validated server-side price
           },
           quantity: 1,
         },
@@ -76,8 +107,8 @@ serve(async (req) => {
       metadata: {
         prompt_id: promptId,
         user_id: user.id,
-        prompt_price: promptPrice.toString(),
-        prompt_title: promptTitle,
+        prompt_price: validPrompt.price.toString(), // Store validated price in metadata
+        prompt_title: validPrompt.title,
         prompt_category: promptCategory || "General",
       },
     });
