@@ -19,7 +19,9 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Refunds from "./pages/Refunds";
 import Favorites from "./pages/Favorites";
+import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +67,14 @@ const App = () => (
                 <ProtectedRoute>
                   <Favorites />
                 </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
               } 
             />
             <Route path="*" element={<NotFound />} />
