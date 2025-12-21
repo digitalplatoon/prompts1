@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { PromptCard } from '@/components/PromptCard';
-import { SearchFilters, FilterState } from '@/components/SearchFilters';
+import { SearchFilters, FilterState, SortOption } from '@/components/SearchFilters';
 import { prompts } from '@/data/prompts';
 
 const Browse = () => {
@@ -16,9 +16,11 @@ const Browse = () => {
     priceRange: [0, 50],
     minRating: 0,
   });
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
 
-  const filteredPrompts = useMemo(() => {
-    return prompts.filter((prompt) => {
+  const filteredAndSortedPrompts = useMemo(() => {
+    // First filter
+    const filtered = prompts.filter((prompt) => {
       // Search query filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -46,7 +48,27 @@ const Browse = () => {
 
       return true;
     });
-  }, [searchQuery, filters]);
+
+    // Then sort
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return b.id.localeCompare(a.id); // Assuming higher ID = newer
+        case 'oldest':
+          return a.id.localeCompare(b.id);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'rating-high':
+          return b.rating - a.rating;
+        case 'rating-low':
+          return a.rating - b.rating;
+        default:
+          return 0;
+      }
+    });
+  }, [searchQuery, filters, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,20 +91,21 @@ const Browse = () => {
             <SearchFilters
               onSearch={setSearchQuery}
               onFilterChange={setFilters}
+              onSortChange={setSortBy}
             />
           </div>
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-muted-foreground">
-              Showing <span className="text-foreground font-medium">{filteredPrompts.length}</span> prompts
+              Showing <span className="text-foreground font-medium">{filteredAndSortedPrompts.length}</span> prompts
             </p>
           </div>
 
           {/* Prompts Grid */}
-          {filteredPrompts.length > 0 ? (
+          {filteredAndSortedPrompts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPrompts.map((prompt, index) => (
+              {filteredAndSortedPrompts.map((prompt, index) => (
                 <PromptCard key={prompt.id} prompt={prompt} index={index} />
               ))}
             </div>
