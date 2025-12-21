@@ -21,6 +21,10 @@ import Refunds from "./pages/Refunds";
 import Favorites from "./pages/Favorites";
 import Admin from "./pages/Admin";
 import SubmitPrompt from "./pages/SubmitPrompt";
+import Pricing from "./pages/Pricing";
+import Api from "./pages/Api";
+import Blog from "./pages/Blog";
+import Careers from "./pages/Careers";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
@@ -44,6 +48,10 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/refunds" element={<Refunds />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/api" element={<Api />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/careers" element={<Careers />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route 
