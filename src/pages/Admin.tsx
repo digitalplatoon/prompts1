@@ -13,6 +13,7 @@ import { Footer } from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { prompts } from '@/data/prompts';
 import { UserManagement } from '@/components/UserManagement';
+import { SubscriberManagement } from '@/components/SubscriberManagement';
 import {
   Card,
   CardContent,
@@ -224,9 +225,10 @@ export default function Admin() {
 
           {/* Tabs for different sections */}
           <Tabs defaultValue="purchases" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+            <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
               <TabsTrigger value="purchases">Purchases</TabsTrigger>
-              <TabsTrigger value="users">User Management</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
             </TabsList>
 
             <TabsContent value="purchases">
@@ -291,6 +293,10 @@ export default function Admin() {
 
             <TabsContent value="users">
               <UserManagement />
+            </TabsContent>
+
+            <TabsContent value="subscribers">
+              <SubscriberManagement />
             </TabsContent>
           </Tabs>
         </div>
