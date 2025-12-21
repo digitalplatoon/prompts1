@@ -25,8 +25,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { promptId, promptTitle, promptPrice } = await req.json();
-    logStep("Request data", { promptId, promptTitle, promptPrice });
+    const { promptId, promptTitle, promptPrice, promptCategory } = await req.json();
+    logStep("Request data", { promptId, promptTitle, promptPrice, promptCategory });
 
     if (!promptId || !promptTitle || !promptPrice) {
       throw new Error("Missing required fields: promptId, promptTitle, promptPrice");
@@ -77,6 +77,8 @@ serve(async (req) => {
         prompt_id: promptId,
         user_id: user.id,
         prompt_price: promptPrice.toString(),
+        prompt_title: promptTitle,
+        prompt_category: promptCategory || "General",
       },
     });
 
