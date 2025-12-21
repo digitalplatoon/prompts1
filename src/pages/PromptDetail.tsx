@@ -134,6 +134,7 @@ const PromptDetail = () => {
           promptId: prompt.id,
           promptTitle: prompt.title,
           promptPrice: prompt.price,
+          promptCategory: category?.name || 'General',
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,

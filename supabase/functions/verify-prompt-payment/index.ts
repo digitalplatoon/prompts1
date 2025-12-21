@@ -41,7 +41,7 @@ serve(async (req) => {
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -109,6 +109,44 @@ serve(async (req) => {
     }
 
     logStep("Purchase recorded successfully");
+
+    // Send confirmation email in background
+    const promptTitle = session.metadata?.prompt_title || "Your Prompt";
+    const promptCategory = session.metadata?.prompt_category || "General";
+    
+    if (user.email) {
+      logStep("Sending confirmation email", { email: user.email });
+      
+      try {
+        const emailResponse = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-purchase-confirmation`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            },
+            body: JSON.stringify({
+              email: user.email,
+              promptTitle,
+              promptCategory,
+              price,
+              purchaseDate: new Date().toISOString(),
+            }),
+          }
+        );
+        
+        if (emailResponse.ok) {
+          logStep("Confirmation email sent successfully");
+        } else {
+          const errorData = await emailResponse.text();
+          logStep("Failed to send confirmation email", { error: errorData });
+        }
+      } catch (emailError) {
+        logStep("Email sending error", { error: emailError instanceof Error ? emailError.message : String(emailError) });
+        // Don't throw - we still want to return success for the purchase
+      }
+    }
 
     return new Response(JSON.stringify({ 
       verified: true, 
