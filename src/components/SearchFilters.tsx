@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/prompts';
+import { SearchAutocomplete } from './SearchAutocomplete';
 
 interface SearchFiltersProps {
   onSearch: (query: string) => void;
@@ -15,7 +16,6 @@ export interface FilterState {
 }
 
 export function SearchFilters({ onSearch, onFilterChange }: SearchFiltersProps) {
-  const [query, setQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     category: '',
@@ -23,10 +23,6 @@ export function SearchFilters({ onSearch, onFilterChange }: SearchFiltersProps) 
     minRating: 0,
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(query);
-  };
 
   const updateFilter = (key: keyof FilterState, value: any) => {
     const newFilters = { ...filters, [key]: value };
@@ -46,31 +42,21 @@ export function SearchFilters({ onSearch, onFilterChange }: SearchFiltersProps) 
 
   return (
     <div className="w-full">
-      {/* Search Bar */}
-      <form onSubmit={handleSearch} className="relative mb-4">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search prompts..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="input-glass w-full pl-12 pr-24"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </Button>
-          <Button type="submit" size="sm" className="btn-gradient px-4">
-            Search
-          </Button>
+      {/* Search Bar with Autocomplete */}
+      <div className="relative mb-4 flex gap-2">
+        <div className="flex-1">
+          <SearchAutocomplete onSearch={onSearch} />
         </div>
-      </form>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => setShowFilters(!showFilters)}
+          className="shrink-0 h-12 w-12"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Filters Panel */}
       {showFilters && (
