@@ -628,3 +628,8 @@ export const getRelatedPosts = (currentSlug: string, limit: number = 3): BlogPos
     .filter(post => post.category === currentPost.category)
     .slice(0, limit);
 };
+
+export const getCategories = (): string[] => {
+  const categories = blogPosts.map(post => post.category);
+  return ["All", ...Array.from(new Set(categories))];
+};

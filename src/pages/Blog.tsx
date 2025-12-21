@@ -1,18 +1,44 @@
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User, ArrowRight, BookOpen } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, User, ArrowRight, BookOpen, Search, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { blogPosts, getFeaturedPost } from "@/data/blogPosts";
-
-const categories = ["All", "Tutorials", "Engineering", "Research", "Case Studies", "Industry Insights"];
+import { blogPosts, getFeaturedPost, getCategories } from "@/data/blogPosts";
 
 const Blog = () => {
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const categories = getCategories();
   const featuredPost = getFeaturedPost();
-  const posts = blogPosts.filter(post => !post.featured);
+
+  const filteredPosts = useMemo(() => {
+    return blogPosts.filter((post) => {
+      const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
+      const matchesSearch = searchQuery === "" || 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [selectedCategory, searchQuery]);
+
+  const showFeatured = selectedCategory === "All" && searchQuery === "" && featuredPost;
+  const displayPosts = showFeatured 
+    ? filteredPosts.filter(post => !post.featured) 
+    : filteredPosts;
+
+  const clearFilters = () => {
+    setSelectedCategory("All");
+    setSearchQuery("");
+  };
+
+  const hasActiveFilters = selectedCategory !== "All" || searchQuery !== "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,25 +60,64 @@ const Blog = () => {
         </div>
       </section>
 
-      {/* Category Filter */}
+      {/* Search and Category Filter */}
       <section className="pb-8 px-4">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-6xl space-y-6">
+          {/* Search Input */}
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search articles by title or content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Category Filter */}
           <div className="flex flex-wrap gap-2 justify-center">
             {categories.map((category) => (
               <Button
                 key={category}
-                variant={category === "All" ? "default" : "outline"}
+                variant={category === selectedCategory ? "default" : "outline"}
                 size="sm"
+                onClick={() => setSelectedCategory(category)}
               >
                 {category}
               </Button>
             ))}
           </div>
+
+          {/* Results count & clear filters */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+              <span>
+                Found {filteredPosts.length} article{filteredPosts.length !== 1 ? "s" : ""}
+                {searchQuery && ` for "${searchQuery}"`}
+                {selectedCategory !== "All" && ` in ${selectedCategory}`}
+              </span>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="h-3 w-3 mr-1" />
+                Clear filters
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Featured Post */}
-      {featuredPost && (
+      {showFeatured && (
         <section className="pb-12 px-4">
           <div className="container mx-auto max-w-6xl">
             <Card 
@@ -100,41 +165,53 @@ const Blog = () => {
       {/* Blog Grid */}
       <section className="py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <Card 
-                key={post.slug} 
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/blog/${post.slug}`)}
-              >
-                <div className="aspect-video">
-                  <img 
-                    src={post.image} 
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardHeader>
-                  <Badge variant="secondary" className="w-fit mb-2">
-                    {post.category}
-                  </Badge>
-                  <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="line-clamp-2 mb-4">
-                    {post.excerpt}
-                  </CardDescription>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      {post.author}
-                    </span>
-                    <span>{post.readTime}</span>
+          {displayPosts.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displayPosts.map((post) => (
+                <Card 
+                  key={post.slug} 
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/blog/${post.slug}`)}
+                >
+                  <div className="aspect-video">
+                    <img 
+                      src={post.image} 
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <CardHeader>
+                    <Badge variant="secondary" className="w-fit mb-2">
+                      {post.category}
+                    </Badge>
+                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="line-clamp-2 mb-4">
+                      {post.excerpt}
+                    </CardDescription>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {post.author}
+                      </span>
+                      <span>{post.readTime}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-xl text-muted-foreground mb-4">No articles found</p>
+              <p className="text-muted-foreground mb-6">
+                Try adjusting your search or filter criteria
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
