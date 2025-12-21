@@ -1,12 +1,20 @@
 import { useState } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { categories } from '@/data/prompts';
 import { SearchAutocomplete } from './SearchAutocomplete';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SearchFiltersProps {
   onSearch: (query: string) => void;
   onFilterChange: (filters: FilterState) => void;
+  onSortChange?: (sort: SortOption) => void;
 }
 
 export interface FilterState {
@@ -15,19 +23,26 @@ export interface FilterState {
   minRating: number;
 }
 
-export function SearchFilters({ onSearch, onFilterChange }: SearchFiltersProps) {
+export type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'rating-high' | 'rating-low';
+
+export function SearchFilters({ onSearch, onFilterChange, onSortChange }: SearchFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     category: '',
     priceRange: [0, 50],
     minRating: 0,
   });
-
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   const updateFilter = (key: keyof FilterState, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
+  };
+
+  const handleSortChange = (value: SortOption) => {
+    setSortBy(value);
+    onSortChange?.(value);
   };
 
   const clearFilters = () => {
@@ -47,6 +62,23 @@ export function SearchFilters({ onSearch, onFilterChange }: SearchFiltersProps) 
         <div className="flex-1">
           <SearchAutocomplete onSearch={onSearch} />
         </div>
+        
+        {/* Sort Dropdown */}
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-[160px] h-12 bg-background border-border">
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent className="bg-background border-border z-50">
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
+            <SelectItem value="price-low">Price: Low to High</SelectItem>
+            <SelectItem value="price-high">Price: High to Low</SelectItem>
+            <SelectItem value="rating-high">Rating: High to Low</SelectItem>
+            <SelectItem value="rating-low">Rating: Low to High</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Button
           type="button"
           variant="outline"
