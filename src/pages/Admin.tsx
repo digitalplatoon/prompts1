@@ -12,6 +12,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { prompts } from '@/data/prompts';
+import { UserManagement } from '@/components/UserManagement';
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PurchaseData {
   id: string;
@@ -220,63 +222,77 @@ export default function Admin() {
             </Card>
           </div>
 
-          {/* Recent Purchases Table */}
-          <Card className="card-glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                Recent Purchases
-              </CardTitle>
-              <CardDescription>
-                Latest transactions across the platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : purchases.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No purchases yet
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Prompt</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {purchases.map((purchase) => (
-                        <TableRow key={purchase.id}>
-                          <TableCell className="font-medium">
-                            {getPromptTitle(purchase.prompt_id)}
-                          </TableCell>
-                          <TableCell>
-                            {purchase.profile?.display_name || 'Anonymous'}
-                          </TableCell>
-                          <TableCell className="text-primary font-medium">
-                            ${Number(purchase.price).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {formatDate(purchase.purchased_at)}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Tabs for different sections */}
+          <Tabs defaultValue="purchases" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+              <TabsTrigger value="purchases">Purchases</TabsTrigger>
+              <TabsTrigger value="users">User Management</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="purchases">
+              {/* Recent Purchases Table */}
+              <Card className="card-glass">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Recent Purchases
+                  </CardTitle>
+                  <CardDescription>
+                    Latest transactions across the platform
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : purchases.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No purchases yet
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Prompt</TableHead>
+                            <TableHead>User</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead>Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {purchases.map((purchase) => (
+                            <TableRow key={purchase.id}>
+                              <TableCell className="font-medium">
+                                {getPromptTitle(purchase.prompt_id)}
+                              </TableCell>
+                              <TableCell>
+                                {purchase.profile?.display_name || 'Anonymous'}
+                              </TableCell>
+                              <TableCell className="text-primary font-medium">
+                                ${Number(purchase.price).toFixed(2)}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {formatDate(purchase.purchased_at)}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
