@@ -1,10 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { PromptCard } from '@/components/PromptCard';
 import { SearchFilters, FilterState, SortOption } from '@/components/SearchFilters';
+import { Button } from '@/components/ui/button';
 import { prompts } from '@/data/prompts';
+
+const ITEMS_PER_PAGE = 9;
 
 const Browse = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +21,7 @@ const Browse = () => {
     minRating: 0,
   });
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredAndSortedPrompts = useMemo(() => {
     // First filter
@@ -53,7 +58,7 @@ const Browse = () => {
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return b.id.localeCompare(a.id); // Assuming higher ID = newer
+          return b.id.localeCompare(a.id);
         case 'oldest':
           return a.id.localeCompare(b.id);
         case 'price-low':
@@ -69,6 +74,29 @@ const Browse = () => {
       }
     });
   }, [searchQuery, filters, sortBy]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAndSortedPrompts.length / ITEMS_PER_PAGE);
+  const paginatedPrompts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedPrompts, currentPage]);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sort: SortOption) => {
+    setSortBy(sort);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,26 +117,94 @@ const Browse = () => {
           {/* Search and Filters */}
           <div className="mb-12">
             <SearchFilters
-              onSearch={setSearchQuery}
-              onFilterChange={setFilters}
-              onSortChange={setSortBy}
+              onSearch={handleSearch}
+              onFilterChange={handleFilterChange}
+              onSortChange={handleSortChange}
             />
           </div>
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-muted-foreground">
-              Showing <span className="text-foreground font-medium">{filteredAndSortedPrompts.length}</span> prompts
+              Showing <span className="text-foreground font-medium">
+                {paginatedPrompts.length}
+              </span> of <span className="text-foreground font-medium">
+                {filteredAndSortedPrompts.length}
+              </span> prompts
             </p>
+            {totalPages > 1 && (
+              <p className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </p>
+            )}
           </div>
 
           {/* Prompts Grid */}
-          {filteredAndSortedPrompts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSortedPrompts.map((prompt, index) => (
-                <PromptCard key={prompt.id} prompt={prompt} index={index} />
-              ))}
-            </div>
+          {paginatedPrompts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedPrompts.map((prompt, index) => (
+                  <PromptCard key={prompt.id} prompt={prompt} index={index} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-12">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first, last, current and adjacent pages
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1;
+
+                      if (!showPage) {
+                        // Show ellipsis
+                        if (page === 2 || page === totalPages - 1) {
+                          return (
+                            <span key={page} className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => setCurrentPage(page)}
+                          className="w-10 h-10"
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="text-6xl mb-4">🔍</div>
