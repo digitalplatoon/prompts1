@@ -10,6 +10,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialShareButtons } from '@/components/SocialShareButtons';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { ReviewForm } from '@/components/ReviewForm';
+import { ReviewList } from '@/components/ReviewList';
+import { useReviews } from '@/hooks/useReviews';
 
 const PromptDetail = () => {
   const { id } = useParams();
@@ -162,30 +165,20 @@ const PromptDetail = () => {
     }
   };
 
-  // Sample reviews data
-  const reviews = [
-    {
-      id: 1,
-      author: 'Sarah K.',
-      rating: 5,
-      date: '2 days ago',
-      comment: 'Incredible prompt! Saved me hours of work. The outputs are consistently high quality.',
-    },
-    {
-      id: 2,
-      author: 'Mike R.',
-      rating: 5,
-      date: '1 week ago',
-      comment: 'Best investment I made for my AI workflow. Highly recommended!',
-    },
-    {
-      id: 3,
-      author: 'Jessica L.',
-      rating: 4,
-      date: '2 weeks ago',
-      comment: 'Great prompt with excellent instructions. Would love more example outputs.',
-    },
-  ];
+  const {
+    reviews,
+    userReview,
+    loading: reviewsLoading,
+    submitting: reviewSubmitting,
+    submitReview,
+    deleteReview,
+    averageRating,
+    reviewCount,
+  } = useReviews(id || '');
+
+  // Use real average rating if we have reviews, otherwise use prompt's default
+  const displayRating = reviewCount > 0 ? averageRating : prompt.rating;
+  const displayReviewCount = reviewCount > 0 ? reviewCount : prompt.reviews;
 
   return (
     <div className="min-h-screen bg-background">
@@ -225,7 +218,7 @@ const PromptDetail = () => {
                         />
                       ))}
                       <span className="text-sm text-muted-foreground ml-2">
-                        {prompt.rating} ({prompt.reviews} reviews)
+                        {displayRating.toFixed(1)} ({displayReviewCount} reviews)
                       </span>
                     </div>
                   </div>
@@ -335,37 +328,47 @@ const PromptDetail = () => {
 
               {/* Reviews Section */}
               <div className="card-glass">
-                <h2 className="text-xl font-semibold mb-6">Customer Reviews</h2>
-                <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="border-b border-border/50 pb-6 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <User className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{review.author}</div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-3 h-3 ${
-                                    i < review.rating
-                                      ? 'fill-yellow-500 text-yellow-500'
-                                      : 'text-muted'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-xs text-muted-foreground">{review.date}</span>
-                          </div>
-                        </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold">Customer Reviews</h2>
+                  {reviewCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 ${
+                              star <= Math.round(averageRating)
+                                ? 'fill-yellow-500 text-yellow-500'
+                                : 'text-muted'
+                            }`}
+                          />
+                        ))}
                       </div>
-                      <p className="text-muted-foreground">{review.comment}</p>
+                      <span className="text-sm text-muted-foreground">
+                        {averageRating.toFixed(1)} ({reviewCount})
+                      </span>
                     </div>
-                  ))}
+                  )}
                 </div>
+
+                {/* Review Form */}
+                <div className="mb-6">
+                  <ReviewForm
+                    promptId={id || ''}
+                    existingReview={userReview}
+                    isPurchased={isPurchased}
+                    onSubmit={submitReview}
+                    onDelete={deleteReview}
+                    submitting={reviewSubmitting}
+                  />
+                </div>
+
+                {/* Review List */}
+                <ReviewList
+                  reviews={reviews}
+                  loading={reviewsLoading}
+                  currentUserId={user?.id}
+                />
               </div>
             </div>
 
