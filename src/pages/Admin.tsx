@@ -7,7 +7,8 @@ import {
   Package,
   Heart,
   Calendar,
-  LineChart
+  LineChart,
+  FileText
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -16,6 +17,7 @@ import { prompts } from '@/data/prompts';
 import { UserManagement } from '@/components/UserManagement';
 import { SubscriberManagement } from '@/components/SubscriberManagement';
 import { AdminCharts } from '@/components/AdminCharts';
+import { SubmissionReview } from '@/components/SubmissionReview';
 import {
   Card,
   CardContent,
@@ -227,10 +229,14 @@ export default function Admin() {
 
           {/* Tabs for different sections */}
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+            <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
               <TabsTrigger value="analytics" className="flex items-center gap-1">
                 <LineChart className="w-4 h-4" />
                 Analytics
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                Submissions
               </TabsTrigger>
               <TabsTrigger value="purchases">Purchases</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
@@ -239,6 +245,10 @@ export default function Admin() {
 
             <TabsContent value="analytics">
               <AdminCharts />
+            </TabsContent>
+
+            <TabsContent value="submissions">
+              <SubmissionReview />
             </TabsContent>
 
             <TabsContent value="purchases">
