@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Sparkles, Twitter, Github, Linkedin, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { NewsletterForm } from '@/components/NewsletterForm';
 
 const footerLinks = {
   product: [
@@ -41,16 +41,9 @@ export function Footer() {
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
             Get weekly curated prompts, tips, and exclusive deals delivered to your inbox.
           </p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="input-glass flex-1"
-            />
-            <Button className="btn-gradient whitespace-nowrap">
-              Subscribe
-            </Button>
-          </form>
+          <div className="max-w-md mx-auto">
+            <NewsletterForm />
+          </div>
         </div>
 
         {/* Footer Grid */}
