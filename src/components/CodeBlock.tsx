@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
 
 export const useCodeBlockCopy = () => {
   useEffect(() => {
@@ -28,6 +30,12 @@ export const useCodeBlockCopy = () => {
       codeBlocks.forEach((pre) => {
         pre.classList.add('has-copy-button');
         
+        // Apply syntax highlighting
+        const codeElement = pre.querySelector('code');
+        if (codeElement && !codeElement.classList.contains('hljs')) {
+          hljs.highlightElement(codeElement as HTMLElement);
+        }
+        
         // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper relative group';
@@ -36,7 +44,7 @@ export const useCodeBlockCopy = () => {
         
         // Create copy button
         const copyButton = document.createElement('button');
-        copyButton.className = 'copy-code-button absolute top-2 right-2 p-2 rounded-md bg-background/80 border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted';
+        copyButton.className = 'copy-code-button absolute top-2 right-2 p-2 rounded-md bg-background/80 border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted z-10';
         copyButton.innerHTML = `
           <svg class="copy-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
