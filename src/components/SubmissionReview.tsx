@@ -91,6 +91,9 @@ export function SubmissionReview() {
   const handleReview = async (id: string, status: 'approved' | 'rejected') => {
     setProcessing(true);
     try {
+      const submission = submissions.find(s => s.id === id);
+      if (!submission) throw new Error('Submission not found');
+
       const { error } = await supabase
         .from('submitted_prompts')
         .update({
@@ -101,11 +104,27 @@ export function SubmissionReview() {
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-submission-notification', {
+          body: {
+            userId: submission.user_id,
+            promptTitle: submission.title,
+            status,
+            adminNotes: adminNotes || undefined,
+          },
+        });
+        console.log('Notification email sent');
+      } catch (emailError) {
+        console.error('Failed to send notification email:', emailError);
+        // Don't fail the whole operation if email fails
+      }
+
       toast({
         title: status === 'approved' ? 'Prompt Approved!' : 'Prompt Rejected',
         description: status === 'approved'
-          ? 'The prompt has been approved and will be added to the marketplace.'
-          : 'The submission has been rejected.',
+          ? 'The prompt has been approved and the submitter has been notified.'
+          : 'The submission has been rejected and the submitter has been notified.',
       });
 
       setSelectedSubmission(null);
