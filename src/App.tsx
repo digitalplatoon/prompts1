@@ -14,6 +14,9 @@ import Auth from "./pages/Auth";
 import MyPrompts from "./pages/MyPrompts";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Profile from "./pages/Profile";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Refunds from "./pages/Refunds";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +36,9 @@ const App = () => (
             <Route path="/prompt/:id" element={<PromptDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/refunds" element={<Refunds />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route 
