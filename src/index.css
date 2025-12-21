@@ -170,4 +170,17 @@
     @apply inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold;
     @apply gradient-bg text-primary-foreground;
   }
+
+  /* Code block copy button styles */
+  .code-block-wrapper {
+    @apply relative;
+  }
+
+  .copy-code-button.copied .copy-icon {
+    @apply hidden;
+  }
+
+  .copy-code-button.copied .check-icon {
+    @apply block text-green-500;
+  }
 }

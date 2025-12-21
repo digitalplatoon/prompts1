@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { ReadingProgress } from "@/components/ReadingProgress";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { TableOfContents, calculateReadingTime } from "@/components/TableOfContents";
+import { useCodeBlockCopy } from "@/components/CodeBlock";
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from "@/data/blogPosts";
 import { useEffect, useMemo } from "react";
 
@@ -17,6 +18,9 @@ const BlogPost = () => {
   const navigate = useNavigate();
   const post = slug ? getBlogPostBySlug(slug) : undefined;
   const relatedPosts = slug ? getRelatedPosts(slug, 3) : [];
+
+  // Enable copy button for code blocks
+  useCodeBlockCopy();
 
   // Calculate reading time based on actual content
   const readingTime = useMemo(() => {
