@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Sparkles, User, LogOut, Package, Settings, Heart } from 'lucide-react';
+import { Menu, X, Sparkles, User, LogOut, Package, Settings, Heart, PenLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -75,7 +75,13 @@ export function Navbar() {
                     <span className="text-sm">Account</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-background border-border z-50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/submit-prompt" className="flex items-center gap-2 cursor-pointer">
+                      <PenLine className="w-4 h-4" />
+                      Submit Prompt
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/my-prompts" className="flex items-center gap-2 cursor-pointer">
                       <Package className="w-4 h-4" />
@@ -147,6 +153,12 @@ export function Navbar() {
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                 {user ? (
                   <>
+                    <Link to="/submit-prompt" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="justify-start w-full gap-2">
+                        <PenLine className="w-4 h-4" />
+                        Submit Prompt
+                      </Button>
+                    </Link>
                     <Link to="/my-prompts" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="justify-start w-full gap-2">
                         <Package className="w-4 h-4" />

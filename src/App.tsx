@@ -20,6 +20,7 @@ import Terms from "./pages/Terms";
 import Refunds from "./pages/Refunds";
 import Favorites from "./pages/Favorites";
 import Admin from "./pages/Admin";
+import SubmitPrompt from "./pages/SubmitPrompt";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
@@ -66,6 +67,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Favorites />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/submit-prompt" 
+              element={
+                <ProtectedRoute>
+                  <SubmitPrompt />
                 </ProtectedRoute>
               } 
             />
