@@ -6,7 +6,8 @@ import {
   TrendingUp,
   Package,
   Heart,
-  Calendar
+  Calendar,
+  LineChart
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -14,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { prompts } from '@/data/prompts';
 import { UserManagement } from '@/components/UserManagement';
 import { SubscriberManagement } from '@/components/SubscriberManagement';
+import { AdminCharts } from '@/components/AdminCharts';
 import {
   Card,
   CardContent,
@@ -224,12 +226,20 @@ export default function Admin() {
           </div>
 
           {/* Tabs for different sections */}
-          <Tabs defaultValue="purchases" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
+          <Tabs defaultValue="analytics" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+              <TabsTrigger value="analytics" className="flex items-center gap-1">
+                <LineChart className="w-4 h-4" />
+                Analytics
+              </TabsTrigger>
               <TabsTrigger value="purchases">Purchases</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="analytics">
+              <AdminCharts />
+            </TabsContent>
 
             <TabsContent value="purchases">
               {/* Recent Purchases Table */}
