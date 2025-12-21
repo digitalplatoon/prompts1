@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Star, ArrowRight } from 'lucide-react';
 import { Prompt, categories } from '@/data/prompts';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -12,9 +13,14 @@ export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
 
   return (
     <div
-      className="card-glass group cursor-pointer"
+      className="card-glass group cursor-pointer relative"
       style={{ animationDelay: `${index * 100}ms` }}
     >
+      {/* Favorite Button */}
+      <div className="absolute top-4 right-4 z-10">
+        <FavoriteButton promptId={prompt.id} />
+      </div>
+
       <Link to={`/prompt/${prompt.id}`} className="block">
         {/* Category Badge */}
         <div className="flex items-center justify-between mb-4">
@@ -22,7 +28,7 @@ export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
             <span className="mr-1.5">{category?.icon}</span>
             {category?.name}
           </span>
-          <span className="price-tag">${prompt.price}</span>
+          <span className="price-tag mr-10">${prompt.price}</span>
         </div>
 
         {/* Title */}

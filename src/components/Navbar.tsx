@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Sparkles, User, LogOut, Package, Settings } from 'lucide-react';
+import { Menu, X, Sparkles, User, LogOut, Package, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -83,6 +83,12 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/favorites" className="flex items-center gap-2 cursor-pointer">
+                      <Heart className="w-4 h-4" />
+                      Favorites
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                       <Settings className="w-4 h-4" />
                       Profile Settings
@@ -145,6 +151,12 @@ export function Navbar() {
                       <Button variant="ghost" className="justify-start w-full gap-2">
                         <Package className="w-4 h-4" />
                         My Prompts
+                      </Button>
+                    </Link>
+                    <Link to="/favorites" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="justify-start w-full gap-2">
+                        <Heart className="w-4 h-4" />
+                        Favorites
                       </Button>
                     </Link>
                     <Link to="/profile" onClick={() => setIsOpen(false)}>

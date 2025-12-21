@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Refunds from "./pages/Refunds";
+import Favorites from "./pages/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +56,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/favorites" 
+              element={
+                <ProtectedRoute>
+                  <Favorites />
                 </ProtectedRoute>
               } 
             />
