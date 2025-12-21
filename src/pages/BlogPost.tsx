@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, User, ArrowLeft, ArrowRight, Clock, Share2 } from "lucide-react";
+import { Calendar, User, ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ReadingProgress } from "@/components/ReadingProgress";
+import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from "@/data/blogPosts";
 import { useEffect } from "react";
 
@@ -43,8 +45,11 @@ const BlogPost = () => {
     );
   }
 
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
   return (
     <div className="min-h-screen bg-background">
+      <ReadingProgress />
       <Navbar />
       
       {/* Hero Image */}
@@ -114,9 +119,9 @@ const BlogPost = () => {
             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
           />
 
-          {/* Share Button */}
+          {/* Author and Share Section */}
           <div className="mt-12 pt-8 border-t border-border">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={post.authorAvatar} alt={post.author} />
@@ -127,10 +132,7 @@ const BlogPost = () => {
                   <p className="text-sm text-muted-foreground">Author</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Article
-              </Button>
+              <SocialShareButtons title={post.title} url={currentUrl} />
             </div>
           </div>
         </div>
