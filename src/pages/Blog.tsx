@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SEO } from "@/components/SEO";
 import { Calendar, User, ArrowRight, BookOpen, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -61,6 +62,11 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="AI Prompt Blog - Tips, Tutorials & Best Practices"
+        description="Learn about AI prompts, prompt engineering techniques, and industry trends. Expert articles on ChatGPT, Midjourney, Claude, and more."
+        canonical="https://1prompts.com/blog"
+      />
       <Navbar />
       
       {/* Hero Section */}

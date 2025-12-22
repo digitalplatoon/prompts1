@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { PromptCard } from '@/components/PromptCard';
+import { SEO } from '@/components/SEO';
 import { SearchFilters, FilterState, SortOption } from '@/components/SearchFilters';
 import { Button } from '@/components/ui/button';
 import { prompts } from '@/data/prompts';
@@ -100,6 +101,11 @@ const Browse = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Browse AI Prompts - ChatGPT, Claude, Midjourney Templates"
+        description="Explore our curated collection of premium AI prompts. Filter by category, price, and rating to find the perfect prompt for ChatGPT, Claude, Midjourney, and more."
+        canonical="https://1prompts.com/browse"
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">

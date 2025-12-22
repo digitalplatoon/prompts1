@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { PromptCard } from '@/components/PromptCard';
 import { prompts, Prompt } from '@/data/prompts';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -19,6 +20,12 @@ export default function Favorites() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="My Wishlist - Saved AI Prompts"
+        description="View your saved AI prompts. Keep track of prompts you're interested in purchasing."
+        canonical="https://1prompts.com/favorites"
+        noindex
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 pt-24 pb-16">

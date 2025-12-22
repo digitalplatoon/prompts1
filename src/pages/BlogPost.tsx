@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, User, ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { ReadingProgress } from "@/components/ReadingProgress";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { TableOfContents, calculateReadingTime } from "@/components/TableOfContents";
@@ -40,6 +41,11 @@ const BlogPost = () => {
   if (!post) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Article Not Found"
+          description="The article you're looking for doesn't exist."
+          noindex
+        />
         <Navbar />
         <div className="container mx-auto py-20 text-center">
           <h1 className="text-4xl font-bold mb-4">Article Not Found</h1>
@@ -56,10 +62,42 @@ const BlogPost = () => {
     );
   }
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt,
+    image: post.image,
+    author: {
+      '@type': 'Person',
+      name: post.author,
+    },
+    datePublished: post.date,
+    publisher: {
+      '@type': 'Organization',
+      name: '1Prompts',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://1prompts.com/favicon.ico',
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={post.title}
+        description={post.excerpt}
+        canonical={`https://1prompts.com/blog/${slug}`}
+        ogImage={post.image}
+        ogType="article"
+        article={{
+          publishedTime: post.date,
+          author: post.author,
+          section: post.category,
+        }}
+        structuredData={articleSchema}
+      />
       <ReadingProgress />
       <Navbar />
       
@@ -153,7 +191,7 @@ const BlogPost = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <BlogBookmarkButton slug={slug!} title={post.title} />
-                    <SocialShareButtons title={post.title} url={currentUrl} />
+                    <SocialShareButtons title={post.title} url={`https://1prompts.com/blog/${slug}`} />
                   </div>
                 </div>
               </div>

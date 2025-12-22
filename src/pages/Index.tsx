@@ -3,6 +3,7 @@ import { Footer } from '@/components/Footer';
 import { HeroSection } from '@/components/HeroSection';
 import { CategoryCard } from '@/components/CategoryCard';
 import { PromptCard } from '@/components/PromptCard';
+import { SEO } from '@/components/SEO';
 import { categories, featuredPrompts } from '@/data/prompts';
 import { ArrowRight, TrendingUp, Users, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -17,6 +18,11 @@ const stats = [
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="1Prompts - Premium AI Prompts for ChatGPT, Midjourney & More"
+        description="Discover 10,000+ premium AI prompts for ChatGPT, Midjourney, Claude, and more. Boost your productivity with professionally crafted prompts. Browse, buy, and sell AI prompts."
+        canonical="https://1prompts.com/"
+      />
       <Navbar />
       
       <main>

@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { Sparkles, Target, Heart, Zap } from 'lucide-react';
 
 const values = [
@@ -28,6 +29,11 @@ const values = [
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="About 1Prompts - Our Mission & Story"
+        description="Learn about 1Prompts, the premium AI prompts marketplace. Discover our mission to democratize AI productivity and help creators unlock the full potential of AI tools."
+        canonical="https://1prompts.com/about"
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">
