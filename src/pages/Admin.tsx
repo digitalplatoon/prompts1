@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { supabase } from '@/integrations/supabase/client';
 import { prompts } from '@/data/prompts';
 import { UserManagement } from '@/components/UserManagement';
@@ -138,6 +139,11 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Admin Dashboard"
+        description="1Prompts admin dashboard for managing users, subscriptions, analytics, and content submissions."
+        noindex={true}
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 pt-24 pb-16">

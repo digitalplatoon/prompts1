@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { prompts } from '@/data/prompts';
 import { Package, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,11 @@ const MyPrompts = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="My Purchased Prompts"
+        description="Access your purchased AI prompts library. View and use all the prompts you've bought from 1Prompts."
+        noindex={true}
+      />
       <Navbar />
       
       <main className="pt-24 pb-20">

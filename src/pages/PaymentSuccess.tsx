@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Package, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,6 +84,11 @@ const PaymentSuccess = () => {
   if (verifying) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Payment Successful"
+          description="Your payment has been processed successfully. Access your purchased prompt from your library."
+          noindex={true}
+        />
         <Navbar />
         <main className="pt-24 pb-20">
           <div className="container mx-auto px-4 text-center py-20">
@@ -98,6 +104,11 @@ const PaymentSuccess = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Payment Successful"
+        description="Your payment has been processed successfully. Access your purchased prompt from your library."
+        noindex={true}
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">
