@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -193,6 +194,11 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="My Profile"
+        description="Manage your 1Prompts account settings, update your profile information, and access billing options."
+        noindex={true}
+      />
       <Navbar />
       
       <main className="pt-24 pb-20">
