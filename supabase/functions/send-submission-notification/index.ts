@@ -4,9 +4,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// Allowed origins for CORS - restricts which domains can call this endpoint
+const allowedOrigins = [
+  'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 };
 
 interface NotificationRequest {
@@ -17,6 +27,9 @@ interface NotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -120,10 +133,11 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
-    console.error("Error in send-submission-notification:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error in send-submission-notification:", errorMessage);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
