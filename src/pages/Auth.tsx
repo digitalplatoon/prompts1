@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SEO } from '@/components/SEO';
 import { useToast } from '@/hooks/use-toast';
 import { Sparkles, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
@@ -116,6 +117,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <SEO
+        title={isLogin ? "Sign In" : "Create Account"}
+        description="Sign in or create an account to access premium AI prompts, save favorites, and manage your purchases at 1Prompts."
+        canonical="https://1prompts.com/auth"
+      />
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />

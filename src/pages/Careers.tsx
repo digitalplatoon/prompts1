@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SEO } from "@/components/SEO";
 import { Briefcase, MapPin, Clock, Heart, Laptop, GraduationCap, Users, Sparkles, Coffee, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -99,6 +100,11 @@ const values = [
 const Careers = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Careers - Join Our Team"
+        description="Join the 1Prompts team. We're hiring remote-first talent across engineering, design, marketing, and operations. Explore open positions and benefits."
+        canonical="https://1prompts.com/careers"
+      />
       <Navbar />
       
       {/* Hero Section */}

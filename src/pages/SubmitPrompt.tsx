@@ -1,11 +1,17 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { PromptSubmissionForm } from '@/components/PromptSubmissionForm';
 import { FileText } from 'lucide-react';
 
 export default function SubmitPrompt() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Submit Your AI Prompt"
+        description="Share your best AI prompts with the 1Prompts community. Submit original prompts and earn from your creativity."
+        canonical="https://1prompts.com/submit-prompt"
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 pt-24 pb-16">

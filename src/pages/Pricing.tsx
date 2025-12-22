@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SEO } from "@/components/SEO";
 import { Check, X, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -82,6 +83,11 @@ const faqs = [
 const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Pricing - Affordable AI Prompts for Every Budget"
+        description="Choose the perfect 1Prompts plan for your needs. Free tier available. Pro plan for professionals. Enterprise solutions for teams. No hidden fees."
+        canonical="https://1prompts.com/pricing"
+      />
       <Navbar />
       
       {/* Hero Section */}

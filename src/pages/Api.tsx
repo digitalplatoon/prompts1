@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SEO } from "@/components/SEO";
 import { Code, Key, Zap, Shield, Webhook, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -58,6 +59,11 @@ const variations = await client.prompts.generate({
 const Api = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="API Documentation - Integrate Premium AI Prompts"
+        description="Build with the 1Prompts API. REST endpoints for accessing premium AI prompts. 99.9% uptime, global CDN, enterprise security. SDK available."
+        canonical="https://1prompts.com/api"
+      />
       <Navbar />
       
       {/* Hero Section */}

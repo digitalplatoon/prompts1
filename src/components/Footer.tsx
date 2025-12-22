@@ -23,10 +23,10 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Github, href: '#', label: 'GitHub' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Mail, href: '#', label: 'Email' },
+  { icon: Twitter, href: 'https://twitter.com/1Prompts', label: 'Twitter' },
+  { icon: Github, href: 'https://github.com/1prompts', label: 'GitHub' },
+  { icon: Linkedin, href: 'https://linkedin.com/company/1prompts', label: 'LinkedIn' },
+  { icon: Mail, href: 'mailto:hello@1prompts.com', label: 'Email' },
 ];
 
 export function Footer() {

@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { prompts, categories } from '@/data/prompts';
 import { Star, ArrowLeft, Copy, ShoppingCart, CheckCircle, User, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,6 +86,11 @@ const PromptDetail = () => {
   if (!prompt) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Prompt Not Found"
+          description="The prompt you're looking for doesn't exist."
+          noindex
+        />
         <Navbar />
         <div className="container mx-auto px-4 py-32 text-center">
           <h1 className="text-4xl font-bold mb-4">Prompt Not Found</h1>
@@ -99,6 +105,24 @@ const PromptDetail = () => {
       </div>
     );
   }
+
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: prompt.title,
+    description: prompt.description,
+    offers: {
+      '@type': 'Offer',
+      price: prompt.price,
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: prompt.rating,
+      reviewCount: prompt.reviews,
+    },
+  };
 
   const handleCopyPreview = () => {
     navigator.clipboard.writeText(prompt.preview);
@@ -182,6 +206,14 @@ const PromptDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={prompt.title}
+        description={prompt.description}
+        canonical={`https://1prompts.com/prompt/${id}`}
+        ogType="product"
+        product={{ price: prompt.price, currency: 'USD' }}
+        structuredData={productSchema}
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">

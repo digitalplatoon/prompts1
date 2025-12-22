@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CategoryCard } from '@/components/CategoryCard';
+import { SEO } from '@/components/SEO';
 import { categories, prompts } from '@/data/prompts';
 
 const Categories = () => {
@@ -12,6 +13,11 @@ const Categories = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="AI Prompt Categories - Find Prompts by Tool & Use Case"
+        description="Browse AI prompts by category. Find prompts for ChatGPT, Midjourney, Claude, DALL-E, and more. Categories include writing, coding, marketing, and creative prompts."
+        canonical="https://1prompts.com/categories"
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">

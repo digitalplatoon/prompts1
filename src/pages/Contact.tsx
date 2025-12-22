@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Mail, MessageSquare, HelpCircle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +53,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Contact Us - Get in Touch"
+        description="Have questions about 1Prompts? Contact our support team via email, live chat, or visit our help center. We respond within 24 hours."
+        canonical="https://1prompts.com/contact"
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">
