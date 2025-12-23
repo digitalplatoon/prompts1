@@ -17,6 +17,8 @@ const CookieConsent = () => {
   const handleAccept = () => {
     localStorage.setItem('cookie-consent', 'accepted');
     setIsVisible(false);
+    // Reload to initialize Google Analytics
+    window.location.reload();
   };
 
   const handleDecline = () => {
