@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -134,6 +135,71 @@ serve(async (req: Request) => {
     }
 
     console.log(`Successfully subscribed: ${normalizedEmail}`);
+
+    // Send confirmation email with unsubscribe link
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        const siteUrl = Deno.env.get("SITE_URL") || "https://1prompts.com";
+        const unsubscribeUrl = `${siteUrl}/unsubscribe?email=${encodeURIComponent(normalizedEmail)}`;
+        
+        await resend.emails.send({
+          from: "1Prompts <newsletter@1prompts.com>",
+          to: [normalizedEmail],
+          subject: "Welcome to 1Prompts Newsletter! ✨",
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
+              <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px 16px 0 0; padding: 40px 30px; text-align: center;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Welcome to 1Prompts! ✨</h1>
+                </div>
+                <div style="background-color: #ffffff; padding: 40px 30px; border-radius: 0 0 16px 16px;">
+                  <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                    Thank you for subscribing to our newsletter! You'll now receive:
+                  </p>
+                  <ul style="color: #374151; font-size: 16px; line-height: 1.8; margin: 0 0 20px; padding-left: 20px;">
+                    <li>Weekly curated AI prompts</li>
+                    <li>Tips for crafting better prompts</li>
+                    <li>Exclusive deals and early access</li>
+                    <li>Industry insights and trends</li>
+                  </ul>
+                  <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+                    We're excited to have you on board!
+                  </p>
+                  <div style="text-align: center;">
+                    <a href="${siteUrl}/browse" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      Browse Prompts
+                    </a>
+                  </div>
+                </div>
+                <div style="text-align: center; padding: 30px 20px;">
+                  <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">
+                    © 2024 1Prompts. All rights reserved.
+                  </p>
+                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Don't want to receive these emails? 
+                    <a href="${unsubscribeUrl}" style="color: #6366f1; text-decoration: underline;">Unsubscribe here</a>
+                  </p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        console.log(`Confirmation email sent to: ${normalizedEmail}`);
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't fail the subscription if email fails
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, message: "Successfully subscribed to newsletter" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
