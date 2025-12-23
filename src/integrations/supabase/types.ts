@@ -208,6 +208,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_reviews: {
+        Args: { p_prompt_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          prompt_id: string
+          rating: number
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

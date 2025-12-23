@@ -29,37 +29,28 @@ export function useReviews(promptId: string) {
 
   const fetchReviews = async () => {
     try {
-      // Fetch reviews without exposing user_id to prevent user tracking
-      // We only select the fields needed for public display
+      // Use the secure get_public_reviews function that doesn't expose user_id
       const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-          id,
-          prompt_id,
-          rating,
-          comment,
-          created_at
-        `)
-        .eq('prompt_id', promptId)
-        .order('created_at', { ascending: false });
+        .rpc('get_public_reviews', { p_prompt_id: promptId });
 
       if (error) throw error;
 
-      // Format reviews without user_id - display_name is not needed for privacy
-      const formattedReviews: Review[] = data?.map(r => ({
+      // Format reviews - user_id is not returned by the function for privacy
+      const formattedReviews: Review[] = (data || []).map((r: { id: string; prompt_id: string; rating: number; comment: string; created_at: string }) => ({
         id: r.id,
-        user_id: '', // Hidden for privacy - only set for current user's own review
+        user_id: '', // Not exposed by the function for privacy
         prompt_id: r.prompt_id,
         rating: r.rating,
         comment: r.comment,
         created_at: r.created_at,
         profile: { display_name: 'Anonymous' }
-      })) || [];
+      }));
 
       setReviews(formattedReviews);
 
       // If user is logged in, fetch their own review separately to identify it
       if (user) {
+        // User can view their own review directly via RLS
         const { data: ownReviewData } = await supabase
           .from('reviews')
           .select('id, user_id, prompt_id, rating, comment, created_at')
