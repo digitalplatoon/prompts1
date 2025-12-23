@@ -219,6 +219,22 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_user_submissions: {
+        Args: { p_user_id: string }
+        Returns: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          prompt_content: string
+          status: string
+          suggested_price: number
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
