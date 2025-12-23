@@ -29,33 +29,58 @@ export function useReviews(promptId: string) {
 
   const fetchReviews = async () => {
     try {
+      // Fetch reviews without exposing user_id to prevent user tracking
+      // We only select the fields needed for public display
       const { data, error } = await supabase
         .from('reviews')
         .select(`
           id,
-          user_id,
           prompt_id,
           rating,
           comment,
-          created_at,
-          profiles:user_id (display_name)
+          created_at
         `)
         .eq('prompt_id', promptId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedReviews = data?.map(r => ({
-        ...r,
-        profile: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+      // Format reviews without user_id - display_name is not needed for privacy
+      const formattedReviews: Review[] = data?.map(r => ({
+        id: r.id,
+        user_id: '', // Hidden for privacy - only set for current user's own review
+        prompt_id: r.prompt_id,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: r.created_at,
+        profile: { display_name: 'Anonymous' }
       })) || [];
 
       setReviews(formattedReviews);
 
-      // Find user's own review
+      // If user is logged in, fetch their own review separately to identify it
       if (user) {
-        const ownReview = formattedReviews.find(r => r.user_id === user.id);
-        setUserReview(ownReview || null);
+        const { data: ownReviewData } = await supabase
+          .from('reviews')
+          .select('id, user_id, prompt_id, rating, comment, created_at')
+          .eq('prompt_id', promptId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (ownReviewData) {
+          setUserReview({
+            ...ownReviewData,
+            profile: { display_name: 'You' }
+          });
+          // Update the reviews list to mark the user's own review
+          setReviews(prev => prev.map(r => 
+            r.id === ownReviewData.id 
+              ? { ...r, user_id: user.id, profile: { display_name: 'You' } }
+              : r
+          ));
+        } else {
+          setUserReview(null);
+        }
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);

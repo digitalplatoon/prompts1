@@ -205,17 +205,7 @@ export type Database = {
       }
     }
     Views: {
-      public_reviews: {
-        Row: {
-          comment: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          prompt_id: string | null
-          rating: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       has_role: {
