@@ -14,6 +14,7 @@ import { useCodeBlockCopy } from "@/components/CodeBlock";
 import { BlogBookmarkButton } from "@/components/BlogBookmarkButton";
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from "@/data/blogPosts";
 import { useEffect, useMemo } from "react";
+import DOMPurify from "dompurify";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -298,11 +299,12 @@ const BlogPost = () => {
 };
 
 // Simple markdown-like content formatter with heading IDs for TOC
+// Uses DOMPurify to sanitize output and prevent XSS attacks
 function formatContent(content: string): string {
   const lines = content.split('\n');
   let lineIndex = 0;
   
-  return lines.map((line, idx) => {
+  const rawHtml = lines.map((line, idx) => {
     lineIndex = idx;
     return line;
   }).join('\n')
@@ -347,6 +349,12 @@ function formatContent(content: string): string {
     // Clean up empty paragraphs
     .replace(/<p><\/p>/g, '')
     .replace(/<p>\s*<\/p>/g, '');
+
+  // Sanitize the HTML output to prevent XSS attacks
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: ['h2', 'h3', 'p', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'table', 'tr', 'th', 'td', 'blockquote'],
+    ALLOWED_ATTR: ['id', 'class'],
+  });
 }
 
 export default BlogPost;
