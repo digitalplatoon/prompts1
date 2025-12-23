@@ -52,11 +52,52 @@ const Profile = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Validate image by checking magic bytes (file signature)
+  const validateImageMagicBytes = async (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const arr = new Uint8Array(reader.result as ArrayBuffer);
+        
+        // JPEG: FF D8 FF
+        if (arr[0] === 0xFF && arr[1] === 0xD8 && arr[2] === 0xFF) {
+          resolve(true);
+          return;
+        }
+        
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47) {
+          resolve(true);
+          return;
+        }
+        
+        // GIF: 47 49 46 38 (GIF89a or GIF87a)
+        if (arr[0] === 0x47 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x38) {
+          resolve(true);
+          return;
+        }
+        
+        // WebP: 52 49 46 46 ... 57 45 42 50 (RIFF....WEBP)
+        if (arr.length >= 12 && 
+            arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 &&
+            arr[8] === 0x57 && arr[9] === 0x45 && arr[10] === 0x42 && arr[11] === 0x50) {
+          resolve(true);
+          return;
+        }
+        
+        resolve(false);
+      };
+      reader.onerror = () => resolve(false);
+      // Read only the first 12 bytes needed for signature detection
+      reader.readAsArrayBuffer(file.slice(0, 12));
+    });
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
+    // Validate file type by MIME type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast({
@@ -72,6 +113,17 @@ const Profile = () => {
       toast({
         title: "File too large",
         description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate magic bytes to prevent fake MIME type attacks
+    const isValidImage = await validateImageMagicBytes(file);
+    if (!isValidImage) {
+      toast({
+        title: "Invalid image file",
+        description: "The file does not appear to be a valid image. Please upload a genuine JPG, PNG, GIF, or WebP image.",
         variant: "destructive",
       });
       return;
