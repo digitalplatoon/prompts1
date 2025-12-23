@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-purchase-confirmation]
 verify_jwt = false
+
+[functions.newsletter-subscribe]
+verify_jwt = false
+
+[functions.csp-headers]
+verify_jwt = false

@@ -28,20 +28,34 @@ export function NewsletterForm() {
     setLoading(true);
 
     try {
-      const { error: dbError } = await supabase
-        .from('newsletter_subscribers')
-        .insert({ email: email.trim().toLowerCase() });
+      const { data, error: fnError } = await supabase.functions.invoke('newsletter-subscribe', {
+        body: { email: email.trim() }
+      });
 
-      if (dbError) {
-        if (dbError.code === '23505') {
+      if (fnError) {
+        throw fnError;
+      }
+
+      if (data?.error) {
+        // Handle rate limiting
+        if (data.retryAfter) {
           toast({
-            title: 'Already subscribed',
-            description: 'This email is already on our mailing list.',
+            title: 'Too many attempts',
+            description: `Please wait ${data.retryAfter} seconds before trying again.`,
+            variant: 'destructive',
           });
-          setSubscribed(true);
           return;
         }
-        throw dbError;
+        throw new Error(data.error);
+      }
+
+      if (data?.alreadySubscribed) {
+        toast({
+          title: 'Already subscribed',
+          description: 'This email is already on our mailing list.',
+        });
+        setSubscribed(true);
+        return;
       }
 
       setSubscribed(true);
