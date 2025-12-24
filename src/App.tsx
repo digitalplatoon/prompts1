@@ -3,13 +3,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PageLoader } from "@/components/PageLoader";
 import CookieConsent from "@/components/CookieConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+
+// Redirect component for old URLs
+const ProductRedirect = () => {
+  const id = window.location.pathname.split('/').pop();
+  return <Navigate to={`/prompt/${id}`} replace />;
+};
 
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -51,6 +57,17 @@ const App = () => (
               <Route path="/browse" element={<Browse />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/prompt/:id" element={<PromptDetail />} />
+              
+              {/* Redirects for old/incorrect URLs that Google indexed */}
+              <Route path="/products" element={<Navigate to="/browse" replace />} />
+              <Route path="/products/:id" element={<ProductRedirect />} />
+              <Route path="/catalog" element={<Navigate to="/browse" replace />} />
+              <Route path="/de" element={<Navigate to="/" replace />} />
+              <Route path="/de/*" element={<Navigate to="/" replace />} />
+              <Route path="/es" element={<Navigate to="/" replace />} />
+              <Route path="/es/*" element={<Navigate to="/" replace />} />
+              <Route path="/fr" element={<Navigate to="/" replace />} />
+              <Route path="/fr/*" element={<Navigate to="/" replace />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<Privacy />} />

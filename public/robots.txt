@@ -13,5 +13,18 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Disallow non-existent language paths
+Disallow: /de/
+Disallow: /de
+Disallow: /es/
+Disallow: /es
+Disallow: /fr/
+Disallow: /fr
+
+# Disallow old URL patterns (redirected to correct URLs)
+Disallow: /products
+Disallow: /products/
+Disallow: /catalog
+
 # Sitemap
 Sitemap: https://1prompts.com/sitemap.xml
