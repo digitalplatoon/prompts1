@@ -1,9 +1,15 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Terms of Service - 1Prompts AI Prompt Marketplace"
+        description="Read the Terms of Service for 1Prompts. Understand your rights and responsibilities when using our AI prompt marketplace, including licensing, purchases, and usage policies."
+        canonical="https://1prompts.com/terms"
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 py-16 max-w-4xl">
