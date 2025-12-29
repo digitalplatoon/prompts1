@@ -286,8 +286,31 @@ const Blog = () => {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button size="lg" asChild>
-              <Link to="/">Subscribe to Newsletter</Link>
+              <Link to="/#newsletter">Subscribe to Newsletter</Link>
             </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/browse">Browse Prompts</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Related Pages */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <Link to="/categories" className="p-4 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+              <p className="font-medium">Browse by Category</p>
+              <p className="text-sm text-muted-foreground">Find prompts by type</p>
+            </Link>
+            <Link to="/pricing" className="p-4 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+              <p className="font-medium">View Pricing</p>
+              <p className="text-sm text-muted-foreground">Plans for every need</p>
+            </Link>
+            <Link to="/about" className="p-4 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+              <p className="font-medium">About Us</p>
+              <p className="text-sm text-muted-foreground">Learn our story</p>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,7 +1,9 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
-import { Sparkles, Target, Heart, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Target, Heart, Zap, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const values = [
   {
@@ -103,7 +105,7 @@ const About = () => {
           </div>
 
           {/* Team CTA */}
-          <div className="card-glass p-12 text-center gradient-bg-subtle">
+          <div className="card-glass p-12 text-center gradient-bg-subtle mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Want to Join Our Team?
             </h2>
@@ -111,6 +113,31 @@ const About = () => {
               We're always looking for passionate individuals who share our vision for
               democratizing AI productivity. Check out our open positions.
             </p>
+            <Link to="/careers">
+              <Button>
+                View Open Positions
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Quick Links Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link to="/browse" className="card-glass hover:border-primary/50 transition-colors text-center">
+              <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Browse Prompts</h3>
+              <p className="text-sm text-muted-foreground">Explore our collection of 10,000+ premium prompts</p>
+            </Link>
+            <Link to="/blog" className="card-glass hover:border-primary/50 transition-colors text-center">
+              <Target className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Read Our Blog</h3>
+              <p className="text-sm text-muted-foreground">Learn prompt engineering tips and best practices</p>
+            </Link>
+            <Link to="/contact" className="card-glass hover:border-primary/50 transition-colors text-center">
+              <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Get in Touch</h3>
+              <p className="text-sm text-muted-foreground">Have questions? We'd love to hear from you</p>
+            </Link>
           </div>
         </div>
       </main>
