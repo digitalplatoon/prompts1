@@ -112,13 +112,56 @@ const Index = () => {
                 <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
                   Join thousands of creators using premium prompts to unlock the full potential of AI tools.
                 </p>
-                <Link to="/browse">
-                  <Button className="btn-gradient text-lg px-10 py-6 glow">
-                    Start Exploring
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <Link to="/browse">
+                    <Button className="btn-gradient text-lg px-10 py-6 glow">
+                      Start Exploring
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                  <Link to="/pricing">
+                    <Button variant="outline" className="text-lg px-8 py-6">
+                      View Pricing
+                    </Button>
+                  </Link>
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Blog Preview Section */}
+        <section className="py-20 border-t border-border/50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Learn from Our <span className="gradient-text">Blog</span>
+              </h2>
+              <p className="text-muted-foreground max-w-lg mx-auto">
+                Expert tips on prompt engineering and AI best practices
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Link to="/blog/10-prompt-engineering-techniques" className="card-glass hover:border-primary/50 transition-colors">
+                <h3 className="font-semibold mb-2">10 Prompt Engineering Techniques</h3>
+                <p className="text-sm text-muted-foreground">Master the art of crafting effective AI prompts</p>
+              </Link>
+              <Link to="/blog/beginners-guide-to-ai-prompts" className="card-glass hover:border-primary/50 transition-colors">
+                <h3 className="font-semibold mb-2">Beginner's Guide to AI Prompts</h3>
+                <p className="text-sm text-muted-foreground">Everything you need to get started</p>
+              </Link>
+              <Link to="/blog/future-of-ai-prompts-2024" className="card-glass hover:border-primary/50 transition-colors">
+                <h3 className="font-semibold mb-2">The Future of AI Prompts</h3>
+                <p className="text-sm text-muted-foreground">Trends and predictions for AI</p>
+              </Link>
+            </div>
+            <div className="text-center">
+              <Link to="/blog">
+                <Button variant="ghost" className="text-primary hover:text-primary/80">
+                  Read All Articles
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
             </div>
           </div>
         </section>

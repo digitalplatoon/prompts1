@@ -8,10 +8,16 @@ const footerLinks = {
     { name: 'Categories', path: '/categories' },
     { name: 'Pricing', path: '/pricing' },
     { name: 'API', path: '/api' },
+    { name: 'Submit Prompt', path: '/submit' },
+  ],
+  resources: [
+    { name: 'Blog', path: '/blog' },
+    { name: 'Prompt Engineering Guide', path: '/blog/10-prompt-engineering-techniques' },
+    { name: 'Beginner\'s Guide', path: '/blog/beginners-guide-to-ai-prompts' },
+    { name: 'Prompt Security', path: '/blog/prompt-security-protecting-ai-workflows' },
   ],
   company: [
     { name: 'About', path: '/about' },
-    { name: 'Blog', path: '/blog' },
     { name: 'Careers', path: '/careers' },
     { name: 'Contact', path: '/contact' },
   ],
@@ -48,7 +54,7 @@ export function Footer() {
         </div>
 
         {/* Footer Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -81,6 +87,23 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h4 className="font-semibold mb-4">Resources</h4>
+            <ul className="space-y-3">
+              {footerLinks.resources.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
