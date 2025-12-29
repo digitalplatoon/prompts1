@@ -13,6 +13,9 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Disallow query parameters to prevent indexing of search URLs
+Disallow: /*?*
+
 # Disallow non-existent language paths
 Disallow: /de/
 Disallow: /de

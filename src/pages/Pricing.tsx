@@ -81,12 +81,27 @@ const faqs = [
 ];
 
 const Pricing = () => {
+  // FAQ structured data for rich results
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map((faq) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
         title="Pricing - Affordable AI Prompts for Every Budget"
         description="Choose the perfect 1Prompts plan for your needs. Free tier available. Pro plan for professionals. Enterprise solutions for teams. No hidden fees."
         canonical="https://1prompts.com/pricing"
+        structuredData={faqStructuredData}
       />
       <Navbar />
       
