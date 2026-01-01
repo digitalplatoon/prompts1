@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   BarChart3, 
   Users, 
@@ -8,7 +9,8 @@ import {
   Heart,
   Calendar,
   LineChart,
-  FileText
+  FileText,
+  Shield
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -150,9 +152,18 @@ export default function Admin() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
-              <BarChart3 className="w-4 h-4" />
-              <span className="text-sm font-medium">Admin Dashboard</span>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
+                <BarChart3 className="w-4 h-4" />
+                <span className="text-sm font-medium">Admin Dashboard</span>
+              </div>
+              <Link 
+                to="/security" 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Shield className="w-4 h-4" />
+                <span className="text-sm font-medium">Security Audit</span>
+              </Link>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               Analytics & <span className="gradient-text">Management</span>
