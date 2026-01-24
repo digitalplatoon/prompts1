@@ -340,6 +340,12 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_purchased_prompt_content: {
+        Args: { p_prompt_id: string }
+        Returns: {
+          full_prompt: string
+        }[]
+      }
       get_user_submissions: {
         Args: { p_user_id: string }
         Returns: {

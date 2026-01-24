@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { getPurchasedPromptContent } from '@/lib/db/prompts';
 import { SocialShareButtons } from '@/components/SocialShareButtons';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { ReviewForm } from '@/components/ReviewForm';
@@ -32,6 +33,7 @@ const PromptDetail = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(true);
+  const [fullPromptContent, setFullPromptContent] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -89,8 +91,15 @@ const PromptDetail = () => {
         .or(`prompt_id.eq.${prompt.id},prompt_id.eq.${id}`)
         .maybeSingle();
 
-      setIsPurchased(!!data);
+      const purchased = !!data;
+      setIsPurchased(purchased);
       setCheckingPurchase(false);
+
+      // If purchased, securely fetch the full prompt content via RPC
+      if (purchased) {
+        const content = await getPurchasedPromptContent(prompt.id);
+        setFullPromptContent(content);
+      }
     };
 
     if (prompt) {
@@ -194,7 +203,15 @@ const PromptDetail = () => {
   };
 
   const handleCopyFullPrompt = () => {
-    navigator.clipboard.writeText(prompt.full_prompt);
+    if (!fullPromptContent) {
+      toast({
+        title: 'Content not available',
+        description: 'Unable to copy prompt content.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    navigator.clipboard.writeText(fullPromptContent);
     toast({
       title: 'Full Prompt Copied!',
       description: 'The complete prompt has been copied to your clipboard.',
@@ -323,8 +340,8 @@ const PromptDetail = () => {
                 )}
               </div>
 
-              {/* Full Prompt Section (only show if purchased) */}
-              {isPurchased && (
+              {/* Full Prompt Section (only show if purchased and content loaded) */}
+              {isPurchased && fullPromptContent && (
                 <div className="card-glass border-2 border-primary/30">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -342,7 +359,7 @@ const PromptDetail = () => {
                     </Button>
                   </div>
                   <div className="bg-muted/50 rounded-xl p-4 font-mono text-sm whitespace-pre-wrap">
-                    {prompt.full_prompt}
+                    {fullPromptContent}
                   </div>
                 </div>
               )}

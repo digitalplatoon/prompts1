@@ -82,8 +82,18 @@ export interface GetPromptsOptions {
   orderAsc?: boolean;
 }
 
+// Fields to select for public prompt queries (excludes full_prompt for security)
+const PUBLIC_PROMPT_FIELDS = `
+  id, slug, title, short_description, preview,
+  category_id, price_cents, currency, average_rating,
+  rating_count, tags, is_featured, status, created_at, updated_at,
+  usage_instructions, example_outputs, created_by,
+  prompt_categories (id, slug, name, icon, color)
+`;
+
 /**
  * Fetch published prompts with optional filters, pagination, and sorting
+ * Note: full_prompt is excluded for security - use getPurchasedPromptContent for purchased prompts
  */
 export async function getPublishedPrompts(options: GetPromptsOptions = {}): Promise<PromptWithCategory[]> {
   const {
@@ -102,10 +112,7 @@ export async function getPublishedPrompts(options: GetPromptsOptions = {}): Prom
 
   let query = supabase
     .from("prompts")
-    .select(`
-      *,
-      prompt_categories (id, slug, name, icon, color)
-    `)
+    .select(PUBLIC_PROMPT_FIELDS)
     .eq("status", "published");
 
   // Category filter by ID
@@ -178,14 +185,12 @@ export async function getFeaturedPrompts(limit = 6): Promise<PromptWithCategory[
 
 /**
  * Fetch a single prompt by UUID
+ * Note: full_prompt is excluded for security - use getPurchasedPromptContent for purchased prompts
  */
 export async function getPromptById(id: string): Promise<PromptWithCategory | null> {
   const { data, error } = await supabase
     .from("prompts")
-    .select(`
-      *,
-      prompt_categories (id, slug, name, icon, color)
-    `)
+    .select(PUBLIC_PROMPT_FIELDS)
     .eq("id", id)
     .eq("status", "published")
     .maybeSingle();
@@ -199,14 +204,12 @@ export async function getPromptById(id: string): Promise<PromptWithCategory | nu
 
 /**
  * Fetch a single prompt by slug
+ * Note: full_prompt is excluded for security - use getPurchasedPromptContent for purchased prompts
  */
 export async function getPromptBySlug(slug: string): Promise<PromptWithCategory | null> {
   const { data, error } = await supabase
     .from("prompts")
-    .select(`
-      *,
-      prompt_categories (id, slug, name, icon, color)
-    `)
+    .select(PUBLIC_PROMPT_FIELDS)
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
@@ -239,6 +242,7 @@ export async function getPromptByLegacyId(identifier: string): Promise<PromptWit
 
 /**
  * Get related prompts (same category, excluding current)
+ * Note: full_prompt is excluded for security
  */
 export async function getRelatedPrompts(
   promptId: string,
@@ -249,10 +253,7 @@ export async function getRelatedPrompts(
 
   const { data, error } = await supabase
     .from("prompts")
-    .select(`
-      *,
-      prompt_categories (id, slug, name, icon, color)
-    `)
+    .select(PUBLIC_PROMPT_FIELDS)
     .eq("status", "published")
     .eq("category_id", categoryId)
     .neq("id", promptId)
@@ -331,4 +332,22 @@ export async function getPromptCountsByCategory(): Promise<Record<string, number
     }
   }
   return counts;
+}
+
+/**
+ * Securely fetch full_prompt content for a purchased prompt
+ * Only returns content if the authenticated user has purchased the prompt
+ */
+export async function getPurchasedPromptContent(promptId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc("get_purchased_prompt_content", {
+    p_prompt_id: promptId,
+  });
+
+  if (error) {
+    console.error("getPurchasedPromptContent error:", error);
+    return null;
+  }
+
+  // RPC returns an array of rows
+  return data?.[0]?.full_prompt ?? null;
 }
