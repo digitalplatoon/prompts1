@@ -83,6 +83,127 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompts: {
+        Row: {
+          average_rating: number | null
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          example_outputs: string[] | null
+          full_prompt: string
+          id: string
+          is_featured: boolean | null
+          preview: string
+          price_cents: number
+          rating_count: number | null
+          short_description: string
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          usage_instructions: string[] | null
+        }
+        Insert: {
+          average_rating?: number | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          example_outputs?: string[] | null
+          full_prompt: string
+          id?: string
+          is_featured?: boolean | null
+          preview: string
+          price_cents: number
+          rating_count?: number | null
+          short_description: string
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          usage_instructions?: string[] | null
+        }
+        Update: {
+          average_rating?: number | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          example_outputs?: string[] | null
+          full_prompt?: string
+          id?: string
+          is_featured?: boolean | null
+          preview?: string
+          price_cents?: number
+          rating_count?: number | null
+          short_description?: string
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          usage_instructions?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchased_prompts: {
         Row: {
           id: string
