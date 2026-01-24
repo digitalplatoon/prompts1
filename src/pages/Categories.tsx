@@ -2,14 +2,12 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CategoryCard } from '@/components/CategoryCard';
 import { SEO } from '@/components/SEO';
-import { categories, prompts } from '@/data/prompts';
+import { useCategories, usePromptCountsByCategory } from '@/hooks/usePrompts';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Categories = () => {
-  // Count prompts per category
-  const categoryStats = categories.map((category) => ({
-    ...category,
-    count: prompts.filter((p) => p.category === category.id).length,
-  }));
+  const { data: categories = [], isLoading } = useCategories();
+  const { data: promptCounts = {} } = usePromptCountsByCategory();
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,20 +32,31 @@ const Categories = () => {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categoryStats.map((category, index) => (
-              <div key={category.id} className="card-glass text-center" style={{ animationDelay: `${index * 50}ms` }}>
-                <div
-                  className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center mx-auto mb-4 transition-transform duration-300 hover:scale-110`}
-                >
-                  <span className="text-4xl">{category.icon}</span>
+            {isLoading ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="card-glass text-center">
+                  <Skeleton className="w-20 h-20 rounded-2xl mx-auto mb-4" />
+                  <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-24 mx-auto mb-4" />
+                  <Skeleton className="h-8 w-full" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  {category.count} prompts available
-                </p>
-                <CategoryCard category={category} />
-              </div>
-            ))}
+              ))
+            ) : (
+              categories.map((category, index) => (
+                <div key={category.id} className="card-glass text-center" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div
+                    className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${category.color || 'from-primary to-primary/70'} flex items-center justify-center mx-auto mb-4 transition-transform duration-300 hover:scale-110`}
+                  >
+                    <span className="text-4xl">{category.icon}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {promptCounts[category.id] || 0} prompts available
+                  </p>
+                  <CategoryCard category={category} />
+                </div>
+              ))
+            )}
           </div>
 
           {/* Info Section */}

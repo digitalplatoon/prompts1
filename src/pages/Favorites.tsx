@@ -4,19 +4,39 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
 import { PromptCard } from '@/components/PromptCard';
-import { prompts, Prompt } from '@/data/prompts';
 import { useFavorites } from '@/hooks/useFavorites';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getPromptByLegacyId, type PromptWithCategory } from '@/lib/db/prompts';
 
 export default function Favorites() {
-  const { favorites, loading } = useFavorites();
-  const [favoritePrompts, setFavoritePrompts] = useState<Prompt[]>([]);
+  const { favorites, loading: favoritesLoading } = useFavorites();
+  const [favoritePrompts, setFavoritePrompts] = useState<PromptWithCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const filtered = prompts.filter(p => favorites.includes(p.id));
-    setFavoritePrompts(filtered);
-  }, [favorites]);
+    const fetchFavoritePrompts = async () => {
+      if (favoritesLoading) return;
+      
+      setLoading(true);
+      const prompts: PromptWithCategory[] = [];
+      
+      for (const promptId of favorites) {
+        const prompt = await getPromptByLegacyId(promptId);
+        if (prompt) {
+          prompts.push(prompt);
+        }
+      }
+      
+      setFavoritePrompts(prompts);
+      setLoading(false);
+    };
+
+    fetchFavoritePrompts();
+  }, [favorites, favoritesLoading]);
+
+  const isLoading = favoritesLoading || loading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,10 +65,15 @@ export default function Favorites() {
           </div>
 
           {/* Content */}
-          {loading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-64 bg-muted/20 rounded-xl animate-pulse" />
+                <div key={i} className="card-glass">
+                  <Skeleton className="h-6 w-24 mb-4" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-16 w-full mb-4" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
               ))}
             </div>
           ) : favoritePrompts.length === 0 ? (

@@ -1,15 +1,19 @@
 import { Link } from 'react-router-dom';
 import { Star, ArrowRight } from 'lucide-react';
-import { Prompt, categories } from '@/data/prompts';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import type { PromptWithCategory } from '@/hooks/usePrompts';
 
 interface PromptCardProps {
-  prompt: Prompt;
+  prompt: PromptWithCategory;
   index?: number;
 }
 
 export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
-  const category = categories.find(c => c.id === prompt.category);
+  const category = prompt.prompt_categories;
+  // Convert price from cents to dollars
+  const priceInDollars = (prompt.price_cents / 100).toFixed(2);
+  const rating = prompt.average_rating ?? 0;
+  const reviewCount = prompt.rating_count ?? 0;
 
   return (
     <div
@@ -21,14 +25,16 @@ export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
         <FavoriteButton promptId={prompt.id} />
       </div>
 
-      <Link to={`/prompt/${prompt.id}`} className="block">
+      <Link to={`/prompt/${prompt.slug}`} className="block">
         {/* Category Badge */}
         <div className="flex items-center justify-between mb-4">
-          <span className="category-badge">
-            <span className="mr-1.5">{category?.icon}</span>
-            {category?.name}
-          </span>
-          <span className="price-tag mr-10">${prompt.price}</span>
+          {category && (
+            <span className="category-badge">
+              <span className="mr-1.5">{category.icon}</span>
+              {category.name}
+            </span>
+          )}
+          <span className="price-tag mr-10">${priceInDollars}</span>
         </div>
 
         {/* Title */}
@@ -48,7 +54,7 @@ export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
               <Star
                 key={i}
                 className={`w-4 h-4 ${
-                  i < Math.floor(prompt.rating)
+                  i < Math.floor(rating)
                     ? 'fill-yellow-500 text-yellow-500'
                     : 'text-muted'
                 }`}
@@ -56,21 +62,23 @@ export function PromptCard({ prompt, index = 0 }: PromptCardProps) {
             ))}
           </div>
           <span className="text-sm text-muted-foreground">
-            {prompt.rating} ({prompt.reviews} reviews)
+            {rating.toFixed(1)} ({reviewCount} reviews)
           </span>
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {prompt.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {prompt.tags && prompt.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {prompt.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="flex items-center text-primary font-medium text-sm group-hover:gap-2 transition-all">
