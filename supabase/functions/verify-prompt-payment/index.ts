@@ -54,7 +54,7 @@ serve(async (req) => {
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -65,7 +65,7 @@ serve(async (req) => {
     logStep("Session retrieved", { 
       sessionId: session.id, 
       paymentStatus: session.payment_status,
-      metadata: session.metadata 
+      promptId: session.metadata?.prompt_id
     });
 
     // Verify the session belongs to this user and prompt
@@ -128,7 +128,7 @@ serve(async (req) => {
     const promptCategory = session.metadata?.prompt_category || "General";
     
     if (user.email) {
-      logStep("Sending confirmation email", { email: user.email });
+      logStep("Sending confirmation email");
       
       try {
         const emailResponse = await fetch(

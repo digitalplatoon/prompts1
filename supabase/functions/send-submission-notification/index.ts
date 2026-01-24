@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { userId, promptTitle, status, adminNotes }: NotificationRequest = await req.json();
 
-    console.log("Sending notification for prompt:", promptTitle, "to user:", userId);
+    console.log("Sending notification for prompt submission status update");
 
     // Get user email from Supabase
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
       html,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Email sent successfully");
 
     return new Response(JSON.stringify({ success: true, emailResponse }), {
       status: 200,

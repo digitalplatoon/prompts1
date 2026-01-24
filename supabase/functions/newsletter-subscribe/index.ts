@@ -2,9 +2,21 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// Allowed origins for CORS - restricts which domains can call this endpoint
+const allowedOrigins = [
+  'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
+  'https://prompts1.lovable.app',
+  'https://1prompts.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 };
 
 // In-memory rate limiting store (resets on function cold start)
@@ -54,6 +66,9 @@ function isValidEmail(email: string): boolean {
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+  
   console.log("Newsletter subscribe request received");
 
   // Handle CORS preflight
@@ -63,12 +78,12 @@ serve(async (req: Request) => {
 
   try {
     const clientIp = getClientIp(req);
-    console.log(`Request from IP: ${clientIp}`);
+    // Note: Not logging IP for privacy - rate limiting still works internally
 
     // Check rate limit
     const rateLimitResult = checkRateLimit(clientIp);
     if (!rateLimitResult.allowed) {
-      console.log(`Rate limit exceeded for IP: ${clientIp}`);
+      console.log("Rate limit exceeded for request");
       return new Response(
         JSON.stringify({
           error: "Too many requests",
@@ -100,7 +115,7 @@ serve(async (req: Request) => {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!isValidEmail(normalizedEmail)) {
-      console.log(`Invalid email format: ${normalizedEmail}`);
+      console.log("Invalid email format received");
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -120,7 +135,7 @@ serve(async (req: Request) => {
     if (dbError) {
       if (dbError.code === "23505") {
         // Unique constraint violation - already subscribed
-        console.log(`Email already subscribed: ${normalizedEmail}`);
+        console.log("Email already subscribed");
         return new Response(
           JSON.stringify({ 
             success: true, 
@@ -130,11 +145,11 @@ serve(async (req: Request) => {
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.error("Database error:", dbError);
+      console.error("Database error:", dbError.code);
       throw dbError;
     }
 
-    console.log(`Successfully subscribed: ${normalizedEmail}`);
+    console.log("Successfully subscribed new email");
 
     // Send confirmation email with unsubscribe link
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -193,9 +208,9 @@ serve(async (req: Request) => {
             </html>
           `,
         });
-        console.log(`Confirmation email sent to: ${normalizedEmail}`);
+        console.log("Confirmation email sent successfully");
       } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
+        console.error("Failed to send confirmation email");
         // Don't fail the subscription if email fails
       }
     }
@@ -205,7 +220,7 @@ serve(async (req: Request) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Newsletter subscription error:", error);
+    console.error("Newsletter subscription error");
     return new Response(
       JSON.stringify({ error: "Failed to subscribe. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
