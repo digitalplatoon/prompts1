@@ -43,7 +43,7 @@ serve(async (req) => {
     logStep("Function started");
 
     const { email, promptTitle, promptCategory, price, purchaseDate }: PurchaseEmailRequest = await req.json();
-    logStep("Request data", { email, promptTitle, promptCategory, price, purchaseDate });
+    logStep("Request data", { promptTitle, promptCategory });
 
     if (!email || !promptTitle) {
       throw new Error("Missing required fields: email, promptTitle");
