@@ -22,19 +22,6 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[CREATE-PROMPT-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Server-side price map - source of truth for prompt pricing
-// This prevents price manipulation attacks where clients could send arbitrary prices
-const PROMPT_PRICES: Record<string, { price: number; title: string }> = {
-  '1': { price: 9.99, title: 'Ultimate Blog Post Generator' },
-  '2': { price: 14.99, title: 'Cinematic Scene Generator' },
-  '3': { price: 12.99, title: 'Code Review Assistant' },
-  '4': { price: 19.99, title: 'Marketing Campaign Planner' },
-  '5': { price: 24.99, title: 'Business Plan Generator' },
-  '6': { price: 11.99, title: 'Fantasy World Builder' },
-  '7': { price: 8.99, title: 'Claude Research Assistant' },
-  '8': { price: 13.99, title: 'Product Photography Style' },
-};
-
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
@@ -42,6 +29,12 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Use service role key for database queries to bypass RLS
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -54,27 +47,42 @@ serve(async (req) => {
     const { promptId, promptTitle, promptPrice, promptCategory } = await req.json();
     logStep("Request data", { promptId, category: promptCategory });
 
-    if (!promptId || !promptTitle || !promptPrice) {
+    if (!promptId || !promptTitle || promptPrice === undefined || promptPrice === null) {
       throw new Error("Missing required fields: promptId, promptTitle, promptPrice");
     }
 
-    // Server-side price validation - prevent price manipulation attacks
-    const validPrompt = PROMPT_PRICES[promptId];
-    if (!validPrompt) {
-      logStep("ERROR: Invalid prompt ID", { promptId });
-      throw new Error("Invalid prompt ID");
+    // Server-side price validation - query actual price from database
+    // This prevents price manipulation attacks by validating against the source of truth
+    const { data: promptData, error: promptError } = await supabaseAdmin
+      .from('prompts')
+      .select('price_cents, title, status')
+      .eq('id', promptId)
+      .single();
+
+    if (promptError || !promptData) {
+      logStep("ERROR: Prompt not found in database", { promptId, error: promptError?.message });
+      throw new Error("Prompt not found");
     }
 
-    if (validPrompt.price !== promptPrice) {
-      logStep("ERROR: Price mismatch detected", { 
+    if (promptData.status !== 'published') {
+      logStep("ERROR: Prompt not published", { promptId, status: promptData.status });
+      throw new Error("Prompt not available for purchase");
+    }
+
+    // Calculate server-side price from database (price_cents to dollars)
+    const serverPrice = promptData.price_cents / 100;
+
+    // Allow small floating point differences (up to 1 cent)
+    if (Math.abs(serverPrice - promptPrice) > 0.01) {
+      logStep("ERROR: Price mismatch detected - potential manipulation attempt", { 
         providedPrice: promptPrice, 
-        actualPrice: validPrompt.price,
+        actualPrice: serverPrice,
         promptId 
       });
       throw new Error("Price mismatch - please refresh and try again");
     }
 
-    logStep("Price validation passed", { promptId, price: validPrompt.price });
+    logStep("Price validation passed", { promptId, price: serverPrice });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -106,10 +114,10 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: validPrompt.title,
-              description: `AI Prompt: ${validPrompt.title}`,
+              name: promptData.title,
+              description: `AI Prompt: ${promptData.title}`,
             },
-            unit_amount: Math.round(validPrompt.price * 100), // Use validated server-side price
+            unit_amount: promptData.price_cents, // Use validated server-side price (already in cents)
           },
           quantity: 1,
         },
@@ -120,8 +128,8 @@ serve(async (req) => {
       metadata: {
         prompt_id: promptId,
         user_id: user.id,
-        prompt_price: validPrompt.price.toString(), // Store validated price in metadata
-        prompt_title: validPrompt.title,
+        prompt_price: serverPrice.toString(), // Store validated price in metadata
+        prompt_title: promptData.title,
         prompt_category: promptCategory || "General",
       },
     });
