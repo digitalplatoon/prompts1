@@ -358,6 +358,49 @@ const PromptDetail = () => {
                 </div>
               </div>
 
+              {/* Related Prompts */}
+              {(() => {
+                const relatedPrompts = prompts
+                  .filter((p) => p.id !== prompt.id && p.category === prompt.category)
+                  .slice(0, 4);
+                
+                if (relatedPrompts.length === 0) return null;
+                
+                return (
+                  <div className="card-glass">
+                    <h2 className="text-xl font-semibold mb-4">Related Prompts</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {relatedPrompts.map((relPrompt) => (
+                        <Link
+                          key={relPrompt.id}
+                          to={`/prompt/${relPrompt.id}`}
+                          className="p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors group"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              {category?.name}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                              <span className="text-xs text-muted-foreground">{relPrompt.rating}</span>
+                            </div>
+                          </div>
+                          <h3 className="font-medium group-hover:text-primary transition-colors line-clamp-1">
+                            {relPrompt.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {relPrompt.description}
+                          </p>
+                          <div className="mt-2 text-sm font-semibold text-primary">
+                            ${relPrompt.price}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Reviews Section */}
               <div className="card-glass">
                 <div className="flex items-center justify-between mb-6">
