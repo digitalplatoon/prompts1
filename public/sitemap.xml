@@ -56,12 +56,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://1prompts.com/auth</loc>
-    <lastmod>2025-12-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://1prompts.com/privacy</loc>
     <lastmod>2025-12-24</lastmod>
     <changefreq>yearly</changefreq>

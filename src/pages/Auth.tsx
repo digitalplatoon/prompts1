@@ -121,6 +121,7 @@ const Auth = () => {
         title={isLogin ? "Sign In" : "Create Account"}
         description="Sign in or create an account to access premium AI prompts, save favorites, and manage your purchases at 1Prompts."
         canonical="https://1prompts.com/auth"
+        noindex
       />
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">

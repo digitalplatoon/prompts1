@@ -118,6 +118,7 @@ const Unsubscribe = () => {
         title="Manage Newsletter Subscription"
         description="Manage your newsletter subscription preferences at 1Prompts. Unsubscribe or resubscribe to our newsletter updates."
         canonical="https://1prompts.com/unsubscribe"
+        noindex
       />
       
       {/* Background effects */}
