@@ -2,7 +2,6 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
-import { prompts, categories } from '@/data/prompts';
 import { Star, ArrowLeft, Copy, ShoppingCart, CheckCircle, User, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -14,19 +13,30 @@ import { FavoriteButton } from '@/components/FavoriteButton';
 import { ReviewForm } from '@/components/ReviewForm';
 import { ReviewList } from '@/components/ReviewList';
 import { useReviews } from '@/hooks/useReviews';
+import { usePromptByLegacyId, useRelatedPrompts } from '@/hooks/usePrompts';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PromptDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const prompt = prompts.find((p) => p.id === id);
-  const category = categories.find((c) => c.id === prompt?.category);
+  
+  // Fetch prompt from database
+  const { data: prompt, isLoading: promptLoading } = usePromptByLegacyId(id);
+  const category = prompt?.prompt_categories;
+  
+  // Fetch related prompts
+  const { data: relatedPrompts = [] } = useRelatedPrompts(prompt?.id, prompt?.category_id, 4);
+
   const [copied, setCopied] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Convert price from cents to dollars
+  const priceInDollars = prompt ? (prompt.price_cents / 100).toFixed(2) : '0.00';
 
   // Handle payment success verification
   useEffect(() => {
@@ -38,7 +48,7 @@ const PromptDetail = () => {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           const response = await supabase.functions.invoke('verify-prompt-payment', {
-            body: { sessionId, promptId: id },
+            body: { sessionId, promptId: prompt?.id || id },
             headers: {
               Authorization: `Bearer ${session?.access_token}`,
             },
@@ -59,29 +69,74 @@ const PromptDetail = () => {
       }
     };
     
-    verifyPayment();
-  }, [searchParams, user, id, prompt?.title, toast, navigate]);
+    if (prompt) {
+      verifyPayment();
+    }
+  }, [searchParams, user, id, prompt, toast, navigate]);
 
   useEffect(() => {
     const checkPurchaseStatus = async () => {
-      if (!user || !id) {
+      if (!user || !prompt) {
         setCheckingPurchase(false);
         return;
       }
 
+      // Check using both UUID and legacy ID
       const { data } = await supabase
         .from('purchased_prompts')
         .select('id')
         .eq('user_id', user.id)
-        .eq('prompt_id', id)
+        .or(`prompt_id.eq.${prompt.id},prompt_id.eq.${id}`)
         .maybeSingle();
 
       setIsPurchased(!!data);
       setCheckingPurchase(false);
     };
 
-    checkPurchaseStatus();
-  }, [user, id]);
+    if (prompt) {
+      checkPurchaseStatus();
+    }
+  }, [user, prompt, id]);
+
+  const {
+    reviews,
+    userReview,
+    loading: reviewsLoading,
+    submitting: reviewSubmitting,
+    submitReview,
+    deleteReview,
+    averageRating,
+    reviewCount,
+  } = useReviews(prompt?.id || '');
+
+  if (promptLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24 pb-20">
+          <div className="container mx-auto px-4">
+            <Skeleton className="h-8 w-32 mb-8" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="card-glass">
+                  <Skeleton className="h-8 w-48 mb-4" />
+                  <Skeleton className="h-12 w-full mb-4" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <div className="card-glass">
+                  <Skeleton className="h-12 w-32 mx-auto mb-4" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!prompt) {
     return (
@@ -106,21 +161,25 @@ const PromptDetail = () => {
     );
   }
 
+  // Use real average rating if we have reviews, otherwise use prompt's default
+  const displayRating = reviewCount > 0 ? averageRating : (prompt.average_rating ?? 0);
+  const displayReviewCount = reviewCount > 0 ? reviewCount : (prompt.rating_count ?? 0);
+
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: prompt.title,
-    description: prompt.description,
+    description: prompt.short_description,
     offers: {
       '@type': 'Offer',
-      price: prompt.price,
-      priceCurrency: 'USD',
+      price: priceInDollars,
+      priceCurrency: prompt.currency?.toUpperCase() || 'USD',
       availability: 'https://schema.org/InStock',
     },
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: prompt.rating,
-      reviewCount: prompt.reviews,
+      ratingValue: displayRating,
+      reviewCount: displayReviewCount,
     },
   };
 
@@ -135,7 +194,7 @@ const PromptDetail = () => {
   };
 
   const handleCopyFullPrompt = () => {
-    navigator.clipboard.writeText(prompt.fullPrompt);
+    navigator.clipboard.writeText(prompt.full_prompt);
     toast({
       title: 'Full Prompt Copied!',
       description: 'The complete prompt has been copied to your clipboard.',
@@ -162,7 +221,7 @@ const PromptDetail = () => {
         body: {
           promptId: prompt.id,
           promptTitle: prompt.title,
-          promptPrice: prompt.price,
+          promptPrice: prompt.price_cents / 100, // Convert to dollars for Stripe
           promptCategory: category?.name || 'General',
         },
         headers: {
@@ -189,29 +248,14 @@ const PromptDetail = () => {
     }
   };
 
-  const {
-    reviews,
-    userReview,
-    loading: reviewsLoading,
-    submitting: reviewSubmitting,
-    submitReview,
-    deleteReview,
-    averageRating,
-    reviewCount,
-  } = useReviews(id || '');
-
-  // Use real average rating if we have reviews, otherwise use prompt's default
-  const displayRating = reviewCount > 0 ? averageRating : prompt.rating;
-  const displayReviewCount = reviewCount > 0 ? reviewCount : prompt.reviews;
-
   return (
     <div className="min-h-screen bg-background">
       <SEO
         title={prompt.title}
-        description={prompt.description}
-        canonical={`https://1prompts.com/prompt/${id}`}
+        description={prompt.short_description}
+        canonical={`https://1prompts.com/prompt/${prompt.slug}`}
         ogType="product"
-        product={{ price: prompt.price, currency: 'USD' }}
+        product={{ price: parseFloat(priceInDollars), currency: prompt.currency?.toUpperCase() || 'USD' }}
         structuredData={productSchema}
       />
       <Navbar />
@@ -234,16 +278,18 @@ const PromptDetail = () => {
               <div className="card-glass">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="category-badge">
-                      <span className="mr-1.5">{category?.icon}</span>
-                      {category?.name}
-                    </span>
+                    {category && (
+                      <span className="category-badge">
+                        <span className="mr-1.5">{category.icon}</span>
+                        {category.name}
+                      </span>
+                    )}
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`w-4 h-4 ${
-                            i < Math.floor(prompt.rating)
+                            i < Math.floor(displayRating)
                               ? 'fill-yellow-500 text-yellow-500'
                               : 'text-muted'
                           }`}
@@ -261,18 +307,20 @@ const PromptDetail = () => {
                 </div>
 
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">{prompt.title}</h1>
-                <p className="text-lg text-muted-foreground">{prompt.description}</p>
+                <p className="text-lg text-muted-foreground">{prompt.short_description}</p>
 
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {prompt.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {prompt.tags && prompt.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {prompt.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Full Prompt Section (only show if purchased) */}
@@ -294,7 +342,7 @@ const PromptDetail = () => {
                     </Button>
                   </div>
                   <div className="bg-muted/50 rounded-xl p-4 font-mono text-sm whitespace-pre-wrap">
-                    {prompt.fullPrompt}
+                    {prompt.full_prompt}
                   </div>
                 </div>
               )}
@@ -328,78 +376,76 @@ const PromptDetail = () => {
               </div>
 
               {/* Usage Instructions */}
-              <div className="card-glass">
-                <h2 className="text-xl font-semibold mb-4">Usage Instructions</h2>
-                <ol className="space-y-3">
-                  {prompt.usageInstructions.map((instruction, index) => (
-                    <li key={index} className="flex gap-3">
-                      <span className="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0">
-                        {index + 1}
-                      </span>
-                      <span className="text-muted-foreground">{instruction}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+              {prompt.usage_instructions && prompt.usage_instructions.length > 0 && (
+                <div className="card-glass">
+                  <h2 className="text-xl font-semibold mb-4">Usage Instructions</h2>
+                  <ol className="space-y-3">
+                    {prompt.usage_instructions.map((instruction, index) => (
+                      <li key={index} className="flex gap-3">
+                        <span className="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className="text-muted-foreground">{instruction}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
 
               {/* Example Outputs */}
-              <div className="card-glass">
-                <h2 className="text-xl font-semibold mb-4">Example Outputs</h2>
-                <div className="space-y-3">
-                  {prompt.exampleOutputs.map((output, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl"
-                    >
-                      <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{output}</span>
-                    </div>
-                  ))}
+              {prompt.example_outputs && prompt.example_outputs.length > 0 && (
+                <div className="card-glass">
+                  <h2 className="text-xl font-semibold mb-4">Example Outputs</h2>
+                  <div className="space-y-3">
+                    {prompt.example_outputs.map((output, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl"
+                      >
+                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{output}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Related Prompts */}
-              {(() => {
-                const relatedPrompts = prompts
-                  .filter((p) => p.id !== prompt.id && p.category === prompt.category)
-                  .slice(0, 4);
-                
-                if (relatedPrompts.length === 0) return null;
-                
-                return (
-                  <div className="card-glass">
-                    <h2 className="text-xl font-semibold mb-4">Related Prompts</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {relatedPrompts.map((relPrompt) => (
-                        <Link
-                          key={relPrompt.id}
-                          to={`/prompt/${relPrompt.id}`}
-                          className="p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors group"
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                              {category?.name}
+              {relatedPrompts.length > 0 && (
+                <div className="card-glass">
+                  <h2 className="text-xl font-semibold mb-4">Related Prompts</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {relatedPrompts.map((relPrompt) => (
+                      <Link
+                        key={relPrompt.id}
+                        to={`/prompt/${relPrompt.slug}`}
+                        className="p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            {category?.name}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                            <span className="text-xs text-muted-foreground">
+                              {(relPrompt.average_rating ?? 0).toFixed(1)}
                             </span>
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                              <span className="text-xs text-muted-foreground">{relPrompt.rating}</span>
-                            </div>
                           </div>
-                          <h3 className="font-medium group-hover:text-primary transition-colors line-clamp-1">
-                            {relPrompt.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                            {relPrompt.description}
-                          </p>
-                          <div className="mt-2 text-sm font-semibold text-primary">
-                            ${relPrompt.price}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                        </div>
+                        <h3 className="font-medium group-hover:text-primary transition-colors line-clamp-1">
+                          {relPrompt.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {relPrompt.short_description}
+                        </p>
+                        <div className="mt-2 text-sm font-semibold text-primary">
+                          ${(relPrompt.price_cents / 100).toFixed(2)}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                );
-              })()}
+                </div>
+              )}
 
               {/* Reviews Section */}
               <div className="card-glass">
@@ -429,7 +475,7 @@ const PromptDetail = () => {
                 {/* Review Form */}
                 <div className="mb-6">
                   <ReviewForm
-                    promptId={id || ''}
+                    promptId={prompt.id}
                     existingReview={userReview}
                     isPurchased={isPurchased}
                     onSubmit={submitReview}
@@ -452,7 +498,7 @@ const PromptDetail = () => {
               <div className="card-glass sticky top-28">
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold gradient-text mb-2">
-                    ${prompt.price}
+                    ${priceInDollars}
                   </div>
                   <p className="text-sm text-muted-foreground">One-time purchase</p>
                 </div>
@@ -517,7 +563,7 @@ const PromptDetail = () => {
                     </div>
                     <div>
                       <div className="text-sm font-medium">Created by</div>
-                      <div className="text-sm text-primary">{prompt.author}</div>
+                      <div className="text-sm text-primary">1Prompts Team</div>
                     </div>
                   </div>
                 </div>

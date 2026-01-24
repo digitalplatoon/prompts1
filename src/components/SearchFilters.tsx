@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SlidersHorizontal, X, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { categories } from '@/data/prompts';
+import { useCategories, type PromptCategory } from '@/hooks/usePrompts';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import {
   Select,
@@ -15,6 +15,7 @@ interface SearchFiltersProps {
   onSearch: (query: string) => void;
   onFilterChange: (filters: FilterState) => void;
   onSortChange?: (sort: SortOption) => void;
+  initialCategory?: string;
 }
 
 export interface FilterState {
@@ -25,10 +26,11 @@ export interface FilterState {
 
 export type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'rating-high' | 'rating-low';
 
-export function SearchFilters({ onSearch, onFilterChange, onSortChange }: SearchFiltersProps) {
+export function SearchFilters({ onSearch, onFilterChange, onSortChange, initialCategory = '' }: SearchFiltersProps) {
+  const { data: categories = [] } = useCategories();
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
-    category: '',
+    category: initialCategory,
     priceRange: [0, 50],
     minRating: 0,
   });
@@ -119,7 +121,7 @@ export function SearchFilters({ onSearch, onFilterChange, onSortChange }: Search
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.slug}>
                     {cat.icon} {cat.name}
                   </option>
                 ))}

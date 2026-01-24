@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
@@ -7,7 +7,8 @@ import { PromptCard } from '@/components/PromptCard';
 import { SEO } from '@/components/SEO';
 import { SearchFilters, FilterState, SortOption } from '@/components/SearchFilters';
 import { Button } from '@/components/ui/button';
-import { prompts } from '@/data/prompts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { usePublishedPrompts, useCategoryBySlug } from '@/hooks/usePrompts';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -24,64 +25,48 @@ const Browse = () => {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredAndSortedPrompts = useMemo(() => {
-    // First filter
-    const filtered = prompts.filter((prompt) => {
-      // Search query filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch =
-          prompt.title.toLowerCase().includes(query) ||
-          prompt.description.toLowerCase().includes(query) ||
-          prompt.tags.some((tag) => tag.toLowerCase().includes(query));
-        if (!matchesSearch) return false;
-      }
+  // Get category ID from slug for filtering
+  const { data: categoryData } = useCategoryBySlug(filters.category || undefined);
 
-      // Category filter
-      if (filters.category && prompt.category !== filters.category) {
-        return false;
-      }
+  // Calculate order parameters
+  const orderBy = useMemo(() => {
+    switch (sortBy) {
+      case 'newest':
+      case 'oldest':
+        return 'created_at' as const;
+      case 'price-low':
+      case 'price-high':
+        return 'price_cents' as const;
+      case 'rating-high':
+      case 'rating-low':
+        return 'average_rating' as const;
+      default:
+        return 'created_at' as const;
+    }
+  }, [sortBy]);
 
-      // Price filter
-      if (prompt.price > filters.priceRange[1]) {
-        return false;
-      }
+  const orderAsc = useMemo(() => {
+    return sortBy === 'oldest' || sortBy === 'price-low' || sortBy === 'rating-low';
+  }, [sortBy]);
 
-      // Rating filter
-      if (prompt.rating < filters.minRating) {
-        return false;
-      }
+  // Fetch prompts from database
+  const { data: allPrompts = [], isLoading } = usePublishedPrompts({
+    categoryId: categoryData?.id,
+    search: searchQuery,
+    minPrice: filters.priceRange[0] * 100, // Convert to cents
+    maxPrice: filters.priceRange[1] * 100,
+    minRating: filters.minRating,
+    orderBy,
+    orderAsc,
+    limit: 100, // Fetch more for client-side pagination
+  });
 
-      return true;
-    });
-
-    // Then sort
-    return [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return b.id.localeCompare(a.id);
-        case 'oldest':
-          return a.id.localeCompare(b.id);
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        case 'rating-high':
-          return b.rating - a.rating;
-        case 'rating-low':
-          return a.rating - b.rating;
-        default:
-          return 0;
-      }
-    });
-  }, [searchQuery, filters, sortBy]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredAndSortedPrompts.length / ITEMS_PER_PAGE);
+  // Pagination logic (client-side for now to match existing behavior)
+  const totalPages = Math.ceil(allPrompts.length / ITEMS_PER_PAGE);
   const paginatedPrompts = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAndSortedPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredAndSortedPrompts, currentPage]);
+    return allPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [allPrompts, currentPage]);
 
   // Reset to page 1 when filters change
   const handleFilterChange = (newFilters: FilterState) => {
@@ -98,6 +83,14 @@ const Browse = () => {
     setSortBy(sort);
     setCurrentPage(1);
   };
+
+  // Sync category from URL params
+  useEffect(() => {
+    const category = searchParams.get('category') || '';
+    if (category !== filters.category) {
+      setFilters(prev => ({ ...prev, category }));
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,6 +119,7 @@ const Browse = () => {
               onSearch={handleSearch}
               onFilterChange={handleFilterChange}
               onSortChange={handleSortChange}
+              initialCategory={initialCategory}
             />
           </div>
 
@@ -135,7 +129,7 @@ const Browse = () => {
               Showing <span className="text-foreground font-medium">
                 {paginatedPrompts.length}
               </span> of <span className="text-foreground font-medium">
-                {filteredAndSortedPrompts.length}
+                {allPrompts.length}
               </span> prompts
             </p>
             {totalPages > 1 && (
@@ -146,7 +140,18 @@ const Browse = () => {
           </div>
 
           {/* Prompts Grid */}
-          {paginatedPrompts.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-glass">
+                  <Skeleton className="h-6 w-24 mb-4" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-16 w-full mb-4" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
+          ) : paginatedPrompts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedPrompts.map((prompt, index) => (

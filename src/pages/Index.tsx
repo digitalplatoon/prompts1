@@ -4,10 +4,11 @@ import { HeroSection } from '@/components/HeroSection';
 import { CategoryCard } from '@/components/CategoryCard';
 import { PromptCard } from '@/components/PromptCard';
 import { SEO } from '@/components/SEO';
-import { categories, featuredPrompts } from '@/data/prompts';
+import { useCategories, useFeaturedPrompts, usePromptCountsByCategory } from '@/hooks/usePrompts';
 import { ArrowRight, TrendingUp, Users, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const stats = [
   { icon: TrendingUp, value: '10,000+', label: 'Prompts Available' },
@@ -16,6 +17,10 @@ const stats = [
 ];
 
 const Index = () => {
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: featuredPrompts = [], isLoading: promptsLoading } = useFeaturedPrompts(6);
+  const { data: promptCounts = {} } = usePromptCountsByCategory();
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
@@ -63,9 +68,24 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {categories.map((category, index) => (
-                <CategoryCard key={category.id} category={category} index={index} />
-              ))}
+              {categoriesLoading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="card-glass text-center">
+                    <Skeleton className="w-16 h-16 rounded-2xl mx-auto mb-4" />
+                    <Skeleton className="h-5 w-24 mx-auto mb-2" />
+                    <Skeleton className="h-4 w-16 mx-auto" />
+                  </div>
+                ))
+              ) : (
+                categories.map((category, index) => (
+                  <CategoryCard 
+                    key={category.id} 
+                    category={category} 
+                    promptCount={promptCounts[category.id]}
+                    index={index} 
+                  />
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -91,9 +111,20 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredPrompts.map((prompt, index) => (
-                <PromptCard key={prompt.id} prompt={prompt} index={index} />
-              ))}
+              {promptsLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="card-glass">
+                    <Skeleton className="h-6 w-24 mb-4" />
+                    <Skeleton className="h-6 w-full mb-2" />
+                    <Skeleton className="h-16 w-full mb-4" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                ))
+              ) : (
+                featuredPrompts.map((prompt, index) => (
+                  <PromptCard key={prompt.id} prompt={prompt} index={index} />
+                ))
+              )}
             </div>
           </div>
         </section>

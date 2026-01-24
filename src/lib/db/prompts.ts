@@ -219,16 +219,22 @@ export async function getPromptBySlug(slug: string): Promise<PromptWithCategory 
 }
 
 /**
- * Fetch a prompt by legacy numeric ID (for backward compatibility)
- * Converts old "1", "2", etc. IDs to slugs and fetches
+ * Fetch a prompt by legacy numeric ID, slug, or UUID (for backward compatibility)
+ * Handles old "1", "2" IDs, new slugs like "ultimate-blog-post-generator", and UUIDs
  */
-export async function getPromptByLegacyId(legacyId: string): Promise<PromptWithCategory | null> {
-  const slug = LEGACY_ID_TO_SLUG[legacyId];
-  if (!slug) {
-    // Not a legacy ID, try as UUID
-    return getPromptById(legacyId);
+export async function getPromptByLegacyId(identifier: string): Promise<PromptWithCategory | null> {
+  // Check if it's a legacy numeric ID
+  const slug = LEGACY_ID_TO_SLUG[identifier];
+  if (slug) {
+    return getPromptBySlug(slug);
   }
-  return getPromptBySlug(slug);
+  
+  // Try as slug first (most common new case)
+  const bySlug = await getPromptBySlug(identifier);
+  if (bySlug) return bySlug;
+  
+  // Finally try as UUID
+  return getPromptById(identifier);
 }
 
 /**
