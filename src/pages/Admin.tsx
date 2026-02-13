@@ -21,6 +21,7 @@ import { UserManagement } from '@/components/UserManagement';
 import { SubscriberManagement } from '@/components/SubscriberManagement';
 import { AdminCharts } from '@/components/AdminCharts';
 import { SubmissionReview } from '@/components/SubmissionReview';
+import { AdminPromptManager } from '@/components/AdminPromptManager';
 import {
   Card,
   CardContent,
@@ -246,10 +247,14 @@ export default function Admin() {
 
           {/* Tabs for different sections */}
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
+            <TabsList className="grid w-full grid-cols-6 lg:w-[900px]">
               <TabsTrigger value="analytics" className="flex items-center gap-1">
                 <LineChart className="w-4 h-4" />
                 Analytics
+              </TabsTrigger>
+              <TabsTrigger value="prompts" className="flex items-center gap-1">
+                <Package className="w-4 h-4" />
+                Prompts
               </TabsTrigger>
               <TabsTrigger value="submissions" className="flex items-center gap-1">
                 <FileText className="w-4 h-4" />
@@ -262,6 +267,10 @@ export default function Admin() {
 
             <TabsContent value="analytics">
               <AdminCharts />
+            </TabsContent>
+
+            <TabsContent value="prompts">
+              <AdminPromptManager />
             </TabsContent>
 
             <TabsContent value="submissions">
