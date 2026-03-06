@@ -8,7 +8,7 @@ const footerLinks = {
     { name: 'Categories', path: '/categories' },
     { name: 'Pricing', path: '/pricing' },
     { name: 'API', path: '/api' },
-    { name: 'Submit Prompt', path: '/submit' },
+    { name: 'Submit Prompt', path: '/submit-prompt' },
   ],
   resources: [
     { name: 'Blog', path: '/blog' },
