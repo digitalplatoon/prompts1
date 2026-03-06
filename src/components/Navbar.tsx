@@ -15,6 +15,7 @@ const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'Categories', path: '/categories' },
   { name: 'Browse', path: '/browse' },
+  { name: 'Pricing', path: '/pricing' },
   { name: 'About', path: '/about' },
   { name: 'Contact', path: '/contact' },
 ];
@@ -114,7 +115,7 @@ export function Navbar() {
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/auth?tab=signup">
                   <Button className="btn-gradient">
                     Get Started
                   </Button>

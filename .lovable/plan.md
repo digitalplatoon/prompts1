@@ -1,85 +1,85 @@
 
 
-# Fix Guide Implementation Plan
+# Admin Prompt CRUD UI
 
-## Audit: What's Already Done vs. What Needs Fixing
+## Overview
+Build a full admin interface for creating, editing, and deleting prompts directly from the dashboard. This adds a new "Prompts" tab to the existing Admin page with a table of all prompts (including drafts/archived) and a dialog-based form for create/edit operations.
 
-After comparing the uploaded Fix Guide against the actual codebase, here's what's already implemented and what still needs work:
+## What Will Be Built
 
-| # | Fix | Status | Action Needed |
-|---|-----|--------|---------------|
-| 1 | `/submit` page (404) | **Already exists** at `/submit-prompt` | Fix footer link from `/submit` to `/submit-prompt` |
-| 2 | Categories duplicate cards | **Bug confirmed** | Categories.tsx renders both inline card content AND a `<CategoryCard>` component per category — producing duplicates |
-| 3 | OG tags + JSON-LD | **Already implemented** | SEO component already has OG, Twitter, canonical, and structured data. No changes needed. |
-| 4 | Seed 64 real prompts | **Needs doing** | Database currently has few prompts. Need to insert seed data via database tool. |
-| 5 | Stripe Buy Now flow | **Already implemented** | `create-prompt-checkout`, `verify-prompt-payment` edge functions exist. Purchase flow works. No changes needed. |
-| 6 | Pricing in nav + auth tab fix | **Partially done** | Pricing NOT in navbar. Auth page doesn't read `?tab=signup`. Copyright says 2024. |
-| 7 | Skeleton loading UI | **Already implemented** | Browse, Categories, PromptDetail all use Skeleton components. No changes needed. |
-| 8 | Sitemap slugs + copyright + polish | **Partially done** | Sitemap still uses legacy IDs. Copyright says 2024. |
+### 1. New Component: `AdminPromptManager` (`src/components/AdminPromptManager.tsx`)
+The main component that renders inside a new "Prompts" tab on the Admin page. Contains:
 
-## Actual Changes Required
+- **Prompt table** showing all prompts (not just published) with columns: Title, Category, Price, Status, Featured, Created date, and Actions (Edit/Delete)
+- **Status filter** tabs: All, Draft, Published, Archived
+- **Search** input to filter by title
+- **"New Prompt" button** to open the create form
 
-### 1. Fix Footer `/submit` Link
-**File:** `src/components/Footer.tsx` line 11
-- Change `path: '/submit'` to `path: '/submit-prompt'`
+### 2. New Component: `AdminPromptForm` (`src/components/AdminPromptForm.tsx`)
+A dialog-based form for creating and editing prompts with these fields:
 
-### 2. Fix Categories Duplicate Card Bug
-**File:** `src/pages/Categories.tsx`
-- The bug: lines 46-57 render card content (icon, name, count) inline AND then render `<CategoryCard>` which duplicates the icon/name/explore button
-- Fix: Remove the inline rendering and use only `<CategoryCard>` with `promptCount` prop, OR remove `<CategoryCard>` and keep the inline version with an explore link
-- Recommended: Keep only `<CategoryCard>`, pass `promptCount` and add description display
+- **Title** (text input)
+- **Slug** (auto-generated from title, editable)
+- **Short Description** (textarea)
+- **Preview** (textarea - the public preview snippet)
+- **Full Prompt** (rich textarea with monospace font for the actual prompt content)
+- **Category** (dropdown select populated from `prompt_categories` table)
+- **Price** (number input in dollars, stored as cents)
+- **Tags** (tag input - type a tag and press Enter to add, click to remove)
+- **Usage Instructions** (multi-line input, one per line)
+- **Example Outputs** (multi-line input, one per line)
+- **Status** (select: draft / published / archived)
+- **Featured** (toggle switch)
 
-### 3. Add Pricing to Navbar + Auth Tab Fix + Copyright Update
-**File:** `src/components/Navbar.tsx`
-- Add `{ name: 'Pricing', path: '/pricing' }` to `navLinks` array (between Browse and About)
-- Change "Get Started" button link from `/auth` to `/auth?tab=signup`
-- Add Blog and Submit Prompt to mobile menu navLinks
+### 3. Update: Admin Page (`src/pages/Admin.tsx`)
+- Add a 6th tab "Prompts" with a Package icon to the existing TabsList
+- Import and render `AdminPromptManager` in the new tab content
 
-**File:** `src/pages/Auth.tsx`
-- Read `tab` search param from URL; if `tab=signup`, default `isLogin` to `false`
+### 4. Update: App Router (`src/App.tsx`)
+No changes needed - the admin route already exists and is protected by `AdminRoute`.
 
-**File:** `src/components/Footer.tsx`
-- Change "© 2024" to "© 2026" on line 157
+## Data Flow
 
-### 4. Fix Sitemap Generator
-**File:** `scripts/generate-sitemap.ts`
-- Update prompt entries to use slugs instead of numeric IDs (or ideally fetch from DB, but since this is a static script, update the hardcoded data)
+- **Read all prompts**: Admin RLS policy already allows admins to SELECT all prompts (including drafts). The form will select `*` (including `full_prompt`) since admin has full access.
+- **Create**: `supabase.from('prompts').insert(...)` - admin INSERT policy already exists
+- **Update**: `supabase.from('prompts').update(...).eq('id', id)` - admin UPDATE policy already exists
+- **Delete**: `supabase.from('prompts').delete().eq('id', id)` - admin DELETE policy already exists
+- **Categories**: Fetched via existing `getCategories()` from `src/lib/db/prompts.ts`
 
-### 5. Fix robots.txt
-**File:** `public/robots.txt`
-- Change `Disallow: /*?*` to specific param blocks
-- Add `Allow: /browse?category=`
+No database migrations are needed -- all required RLS policies are already in place.
 
-### 6. Seed 64 Prompts into Database
-- Use the database insert tool to add ~64 prompts across all 8 categories with realistic data (titles, descriptions, previews, prices, ratings, tags)
-- This requires first fetching existing category IDs from the database
+## Technical Details
 
-### 7. Fix Singular/Plural Grammar
-**File:** `src/components/CategoryCard.tsx` line 29
-- Change `{promptCount} prompts` to `{promptCount} {promptCount === 1 ? 'prompt' : 'prompts'}`
+### Slug Generation
+Auto-generate slug from title using: lowercase, replace spaces with hyphens, remove special characters, deduplicate hyphens. The slug field remains editable for manual override.
 
-**File:** `src/pages/Categories.tsx` line 54
-- Same singular/plural fix for prompt count display
+### Tag Management
+A controlled input where:
+- Typing text and pressing Enter adds a tag (trimmed, lowercased)
+- Each tag renders as a Badge with an X button to remove
+- Duplicate tags are prevented
 
-## Files Changed Summary
+### Price Handling
+- Display and input in dollars (e.g., `9.99`)
+- Convert to/from `price_cents` (integer) when reading/writing to database
+- Validation: must be a positive number
 
+### Delete Confirmation
+Uses an AlertDialog to confirm deletion, warning that this action cannot be undone.
+
+### Form Validation
+- Title: required, min 3 characters
+- Slug: required, must be URL-safe
+- Short Description: required
+- Preview: required
+- Full Prompt: required
+- Category: required
+- Price: required, must be > 0
+
+### Files Changed
 | File | Change |
 |------|--------|
-| `src/components/Footer.tsx` | Fix `/submit` link, update copyright to 2026 |
-| `src/pages/Categories.tsx` | Remove duplicate card rendering |
-| `src/components/Navbar.tsx` | Add Pricing to nav, fix Get Started link |
-| `src/pages/Auth.tsx` | Read `?tab=signup` param |
-| `src/components/CategoryCard.tsx` | Fix singular/plural grammar |
-| `scripts/generate-sitemap.ts` | Update to use slugs |
-| `public/robots.txt` | Refine disallow rules |
-| Database | Insert ~64 seed prompts |
-
-## What's NOT Needed (Already Done)
-- OG tags, Twitter cards, JSON-LD structured data (SEO component is comprehensive)
-- Stripe payment flow (fully wired with checkout + verification)
-- Skeleton loading UI (already using Skeleton components throughout)
-- Related prompts on detail page (already implemented)
-- Copy preview button with feedback (already implemented)
-- Unsubscribe page (already exists)
-- Canonical tags (already in SEO component)
+| `src/components/AdminPromptManager.tsx` | New - prompt table with CRUD actions |
+| `src/components/AdminPromptForm.tsx` | New - create/edit dialog form |
+| `src/pages/Admin.tsx` | Add "Prompts" tab, update grid to 6 columns |
 

@@ -13,6 +13,9 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Allow category filtering on browse
+Allow: /browse?category=
+
 # Disallow private/utility pages
 Disallow: /admin
 Disallow: /profile
@@ -22,9 +25,6 @@ Disallow: /auth
 Disallow: /unsubscribe
 Disallow: /payment-success
 Disallow: /security
-
-# Disallow query parameters to prevent indexing of search URLs
-Disallow: /*?*
 
 # Disallow non-existent language paths
 Disallow: /de/
