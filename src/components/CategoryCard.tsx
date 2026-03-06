@@ -25,7 +25,7 @@ export function CategoryCard({ category, promptCount, index = 0 }: CategoryCardP
       </h3>
       {promptCount !== undefined && (
         <p className="text-xs text-muted-foreground mb-2">
-          {promptCount} prompts
+          {promptCount} {promptCount === 1 ? 'prompt' : 'prompts'}
         </p>
       )}
       <div className="flex items-center justify-center text-sm text-muted-foreground group-hover:text-primary transition-colors">

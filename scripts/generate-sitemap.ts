@@ -4,18 +4,6 @@
 const BASE_URL = 'https://1prompts.com';
 const TODAY = new Date().toISOString().split('T')[0];
 
-// Prompt data (mirrors src/data/prompts.ts)
-const prompts = [
-  { id: '1', title: 'Ultimate Blog Post Generator' },
-  { id: '2', title: 'Cinematic Scene Generator' },
-  { id: '3', title: 'Code Review Assistant' },
-  { id: '4', title: 'Marketing Campaign Planner' },
-  { id: '5', title: 'Business Plan Generator' },
-  { id: '6', title: 'Fantasy World Builder' },
-  { id: '7', title: 'Claude Research Assistant' },
-  { id: '8', title: 'Product Photography Style' },
-];
-
 // Blog posts (mirrors src/data/blogPosts.ts)
 const blogPosts = [
   { slug: 'future-of-ai-prompts-2024' },
@@ -38,7 +26,7 @@ const staticPages = [
   { path: '/contact', priority: '0.6', changefreq: 'monthly' },
   { path: '/api', priority: '0.7', changefreq: 'monthly' },
   { path: '/careers', priority: '0.5', changefreq: 'monthly' },
-  { path: '/auth', priority: '0.5', changefreq: 'monthly' },
+  { path: '/submit-prompt', priority: '0.5', changefreq: 'monthly' },
   { path: '/privacy', priority: '0.3', changefreq: 'yearly' },
   { path: '/terms', priority: '0.3', changefreq: 'yearly' },
   { path: '/refunds', priority: '0.3', changefreq: 'yearly' },
@@ -62,11 +50,10 @@ function generateSitemap(): string {
     urls.push(generateUrl(page.path, TODAY, page.changefreq, page.priority));
   }
 
-  // Add prompt detail pages
-  urls.push('\n  <!-- Prompt Detail Pages -->');
-  for (const prompt of prompts) {
-    urls.push(generateUrl(`/prompt/${prompt.id}`, TODAY, 'weekly', '0.7'));
-  }
+  // Note: Prompt detail pages should be generated dynamically from the database
+  // using slug-based URLs: /prompt/{slug}
+  // For now, run `npx tsx scripts/generate-sitemap.ts` and manually add prompt URLs
+  // after querying: SELECT slug FROM prompts WHERE status = 'published';
 
   // Add blog posts
   urls.push('\n  <!-- Blog Posts -->');

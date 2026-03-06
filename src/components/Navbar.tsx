@@ -115,7 +115,7 @@ export function Navbar() {
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/auth?tab=signup">
                   <Button className="btn-gradient">
                     Get Started
                   </Button>

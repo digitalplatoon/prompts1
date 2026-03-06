@@ -154,7 +154,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 1Prompts. All rights reserved.
+            © 2026 1Prompts. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Made with ✨ for AI creators everywhere

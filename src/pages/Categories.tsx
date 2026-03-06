@@ -43,18 +43,12 @@ const Categories = () => {
               ))
             ) : (
               categories.map((category, index) => (
-                <div key={category.id} className="card-glass text-center" style={{ animationDelay: `${index * 50}ms` }}>
-                  <div
-                    className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${category.color || 'from-primary to-primary/70'} flex items-center justify-center mx-auto mb-4 transition-transform duration-300 hover:scale-110`}
-                  >
-                    <span className="text-4xl">{category.icon}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {promptCounts[category.id] || 0} prompts available
-                  </p>
-                  <CategoryCard category={category} />
-                </div>
+                <CategoryCard
+                  key={category.id}
+                  category={category}
+                  promptCount={promptCounts[category.id] || 0}
+                  index={index}
+                />
               ))
             )}
           </div>
