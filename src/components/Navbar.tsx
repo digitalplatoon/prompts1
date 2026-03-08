@@ -196,7 +196,7 @@ export function Navbar() {
                     <Link to="/auth" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="justify-start w-full">Sign In</Button>
                     </Link>
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Link to="/auth?tab=signup" onClick={() => setIsOpen(false)}>
                       <Button className="btn-gradient w-full">Get Started</Button>
                     </Link>
                   </>

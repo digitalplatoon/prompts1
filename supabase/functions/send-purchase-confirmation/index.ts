@@ -5,6 +5,8 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 // Allowed origins for CORS - restricts which domains can call this endpoint
 const allowedOrigins = [
+  'https://1prompts.com',
+  'https://prompts1.lovable.app',
   'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
   'http://localhost:5173',
   'http://localhost:3000',
