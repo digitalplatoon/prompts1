@@ -5,9 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
-import { Package, ArrowRight, Sparkles, Copy, Check } from 'lucide-react';
+import { Package, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 interface PurchasedPrompt {
   id: string;
