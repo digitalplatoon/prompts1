@@ -23,27 +23,39 @@ interface PurchasedPrompt {
 
 const MyPrompts = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [purchasedPrompts, setPurchasedPrompts] = useState<PurchasedPrompt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPurchasedPrompts = async () => {
       if (!user) return;
 
-      const { data, error } = await supabase
+      // Fetch purchased prompts
+      const { data: purchases, error: purchaseError } = await supabase
         .from('purchased_prompts')
-        .select(`
-          *,
-          prompt:prompt_id (title, slug, short_description, category_id)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('purchased_at', { ascending: false });
 
-      if (!error && data) {
-        setPurchasedPrompts(data as PurchasedPrompt[]);
+      if (purchaseError || !purchases) {
+        setLoading(false);
+        return;
       }
+
+      // Fetch prompt details for all purchased prompts
+      const promptIds = purchases.map(p => p.prompt_id);
+      const { data: prompts } = await supabase
+        .from('prompts')
+        .select('id, title, slug, short_description, category_id')
+        .in('id', promptIds);
+
+      // Merge the data
+      const merged: PurchasedPrompt[] = purchases.map(purchase => ({
+        ...purchase,
+        prompt: prompts?.find(p => p.id === purchase.prompt_id) as any,
+      }));
+
+      setPurchasedPrompts(merged);
       setLoading(false);
     };
 
