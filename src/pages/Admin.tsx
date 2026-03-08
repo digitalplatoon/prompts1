@@ -126,8 +126,7 @@ export default function Admin() {
   };
 
   const getPromptTitle = (promptId: string) => {
-    const prompt = prompts.find(p => p.id === promptId);
-    return prompt?.title || promptId;
+    return promptId;
   };
 
   const formatDate = (dateString: string) => {

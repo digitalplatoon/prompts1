@@ -133,6 +133,8 @@ serve(async (req) => {
       logStep("Sending confirmation email");
       
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const emailResponse = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-purchase-confirmation`,
           {
@@ -148,8 +150,10 @@ serve(async (req) => {
               price,
               purchaseDate: new Date().toISOString(),
             }),
+            signal: controller.signal,
           }
         );
+        clearTimeout(timeoutId);
         
         if (emailResponse.ok) {
           logStep("Confirmation email sent successfully");

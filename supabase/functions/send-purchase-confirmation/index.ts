@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
 // Allowed origins for CORS - restricts which domains can call this endpoint
 const allowedOrigins = [
   'https://1prompts.com',
@@ -25,6 +23,13 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[SEND-PURCHASE-CONFIRMATION] ${step}${detailsStr}`);
 };
 
+// HTML entity encoding to prevent XSS in email clients
+const escapeHtml = (str: string): string => {
+  return str.replace(/[<>&"']/g, (c: string) => 
+    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] || c)
+  );
+};
+
 interface PurchaseEmailRequest {
   email: string;
   promptTitle: string;
@@ -44,12 +49,21 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Initialize Resend inside handler to avoid cold-start issues
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) throw new Error("RESEND_API_KEY is not configured");
+    const resend = new Resend(resendApiKey);
+
     const { email, promptTitle, promptCategory, price, purchaseDate }: PurchaseEmailRequest = await req.json();
     logStep("Request data", { promptTitle, promptCategory });
 
     if (!email || !promptTitle) {
       throw new Error("Missing required fields: email, promptTitle");
     }
+
+    // Sanitize user-provided content
+    const safeTitle = escapeHtml(promptTitle);
+    const safeCategory = escapeHtml(promptCategory || "General");
 
     const formattedPrice = `$${price.toFixed(2)}`;
     const formattedDate = new Date(purchaseDate).toLocaleDateString('en-US', {
@@ -61,9 +75,9 @@ serve(async (req) => {
     });
 
     const emailResponse = await resend.emails.send({
-      from: "PromptVault <onboarding@resend.dev>",
+      from: "1Prompts <onboarding@resend.dev>",
       to: [email],
-      subject: `🎉 Purchase Confirmed: ${promptTitle}`,
+      subject: `🎉 Purchase Confirmed: ${safeTitle}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -99,11 +113,11 @@ serve(async (req) => {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Prompt:</td>
-                                <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 500; text-align: right;">${promptTitle}</td>
+                                <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 500; text-align: right;">${safeTitle}</td>
                               </tr>
                               <tr>
                                 <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Category:</td>
-                                <td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right;">${promptCategory}</td>
+                                <td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right;">${safeCategory}</td>
                               </tr>
                               <tr>
                                 <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Date:</td>
@@ -125,7 +139,7 @@ serve(async (req) => {
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                         <tr>
                           <td align="center">
-                            <a href="${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/my-prompts" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                            <a href="https://1prompts.com/my-prompts" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                               View My Prompts
                             </a>
                           </td>
@@ -141,7 +155,7 @@ serve(async (req) => {
                         Questions? Reply to this email or contact our support team.
                       </p>
                       <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0;">
-                        © ${new Date().getFullYear()} PromptVault. All rights reserved.
+                        © ${new Date().getFullYear()} 1Prompts. All rights reserved.
                       </p>
                     </td>
                   </tr>

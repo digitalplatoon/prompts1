@@ -43,12 +43,17 @@ const PaymentSuccess = () => {
 
         if (response.data?.verified) {
           setVerified(true);
-          const prompt = prompts.find(p => p.id === promptId);
-          if (prompt) {
+          // Query prompt details from database instead of stale local data
+          const { data: promptData } = await supabase
+            .from('prompts')
+            .select('id, title, price_cents, slug')
+            .eq('id', promptId)
+            .single();
+          if (promptData) {
             setPurchaseDetails({
-              promptId: prompt.id,
-              promptTitle: prompt.title,
-              price: prompt.price,
+              promptId: promptData.slug || promptData.id,
+              promptTitle: promptData.title,
+              price: promptData.price_cents / 100,
             });
           }
         } else {

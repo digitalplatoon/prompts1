@@ -53,80 +53,82 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/browse" element={<Browse />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/prompt/:id" element={<PromptDetail />} />
-              
-              {/* Redirects for old/incorrect URLs that Google indexed */}
-              <Route path="/products" element={<Navigate to="/browse" replace />} />
-              <Route path="/products/:id" element={<ProductRedirect />} />
-              <Route path="/catalog" element={<Navigate to="/browse" replace />} />
-              <Route path="/de" element={<Navigate to="/" replace />} />
-              <Route path="/de/*" element={<Navigate to="/" replace />} />
-              <Route path="/es" element={<Navigate to="/" replace />} />
-              <Route path="/es/*" element={<Navigate to="/" replace />} />
-              <Route path="/fr" element={<Navigate to="/" replace />} />
-              <Route path="/fr/*" element={<Navigate to="/" replace />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/refunds" element={<Refunds />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/api" element={<Api />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="/careers" element={<Careers />} />
-              <Route path="/security" element={<Security />} />
-              <Route path="/unsubscribe" element={<Unsubscribe />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route 
-                path="/my-prompts" 
-                element={
-                  <ProtectedRoute>
-                    <MyPrompts />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/favorites" 
-                element={
-                  <ProtectedRoute>
-                    <Favorites />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/submit-prompt" 
-                element={
-                  <ProtectedRoute>
-                    <SubmitPrompt />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin" 
-                element={
-                  <AdminRoute>
-                    <Admin />
-                  </AdminRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/browse" element={<Browse />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/prompt/:id" element={<PromptDetail />} />
+                
+                {/* Redirects for old/incorrect URLs that Google indexed */}
+                <Route path="/products" element={<Navigate to="/browse" replace />} />
+                <Route path="/products/:id" element={<ProductRedirect />} />
+                <Route path="/catalog" element={<Navigate to="/browse" replace />} />
+                <Route path="/de" element={<Navigate to="/" replace />} />
+                <Route path="/de/*" element={<Navigate to="/" replace />} />
+                <Route path="/es" element={<Navigate to="/" replace />} />
+                <Route path="/es/*" element={<Navigate to="/" replace />} />
+                <Route path="/fr" element={<Navigate to="/" replace />} />
+                <Route path="/fr/*" element={<Navigate to="/" replace />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/refunds" element={<Refunds />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/api" element={<Api />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/security" element={<Security />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route 
+                  path="/my-prompts" 
+                  element={
+                    <ProtectedRoute>
+                      <MyPrompts />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/favorites" 
+                  element={
+                    <ProtectedRoute>
+                      <Favorites />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/submit-prompt" 
+                  element={
+                    <ProtectedRoute>
+                      <SubmitPrompt />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
           <GoogleAnalytics />
           <CookieConsent />
         </AuthProvider>

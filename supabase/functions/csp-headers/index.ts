@@ -81,6 +81,8 @@ const SECURITY_HEADERS = {
 };
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
   console.log("CSP headers request received");
 
   // Handle CORS preflight
@@ -89,9 +91,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Return the security headers configuration
-    // This can be used by the frontend to understand the CSP policy
-    // or integrated with a CDN/proxy for header injection
     return new Response(
       JSON.stringify({
         success: true,
