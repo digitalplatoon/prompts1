@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
-import { prompts } from '@/data/prompts';
 import { Package, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -14,6 +13,12 @@ interface PurchasedPrompt {
   prompt_id: string;
   purchased_at: string;
   price: number;
+  prompt?: {
+    title: string;
+    slug: string;
+    short_description: string;
+    category_id: string;
+  };
 }
 
 const MyPrompts = () => {
@@ -25,24 +30,37 @@ const MyPrompts = () => {
     const fetchPurchasedPrompts = async () => {
       if (!user) return;
 
-      const { data, error } = await supabase
+      // Fetch purchased prompts
+      const { data: purchases, error: purchaseError } = await supabase
         .from('purchased_prompts')
         .select('*')
         .eq('user_id', user.id)
         .order('purchased_at', { ascending: false });
 
-      if (!error && data) {
-        setPurchasedPrompts(data);
+      if (purchaseError || !purchases) {
+        setLoading(false);
+        return;
       }
+
+      // Fetch prompt details for all purchased prompts
+      const promptIds = purchases.map(p => p.prompt_id);
+      const { data: prompts } = await supabase
+        .from('prompts')
+        .select('id, title, slug, short_description, category_id')
+        .in('id', promptIds);
+
+      // Merge the data
+      const merged: PurchasedPrompt[] = purchases.map(purchase => ({
+        ...purchase,
+        prompt: prompts?.find(p => p.id === purchase.prompt_id) as any,
+      }));
+
+      setPurchasedPrompts(merged);
       setLoading(false);
     };
 
     fetchPurchasedPrompts();
   }, [user]);
-
-  const getPromptDetails = (promptId: string) => {
-    return prompts.find(p => p.id === promptId);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,7 +111,7 @@ const MyPrompts = () => {
             ) : (
               <div className="space-y-4">
                 {purchasedPrompts.map((purchase) => {
-                  const prompt = getPromptDetails(purchase.prompt_id);
+                  const prompt = purchase.prompt;
                   if (!prompt) return null;
 
                   return (
@@ -102,7 +120,7 @@ const MyPrompts = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="category-badge text-xs">
-                              {prompt.category}
+                              {prompt.category_id}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               Purchased {new Date(purchase.purchased_at).toLocaleDateString()}
@@ -110,10 +128,10 @@ const MyPrompts = () => {
                           </div>
                           <h3 className="text-lg font-semibold mb-1">{prompt.title}</h3>
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {prompt.description}
+                            {prompt.short_description}
                           </p>
                         </div>
-                        <Link to={`/prompt/${prompt.id}`}>
+                        <Link to={`/prompt/${prompt.slug}`}>
                           <Button variant="outline" size="sm" className="shrink-0">
                             View Prompt
                             <ArrowRight className="w-4 h-4 ml-1" />
