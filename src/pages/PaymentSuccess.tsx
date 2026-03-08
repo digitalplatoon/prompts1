@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Package, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { prompts } from '@/data/prompts';
 import { useToast } from '@/hooks/use-toast';
 
 const PaymentSuccess = () => {
