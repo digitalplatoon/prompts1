@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getCategoryName } from '@/data/categories';
+import { categories } from '@/data/categories';
 
 interface Submission {
   id: string;

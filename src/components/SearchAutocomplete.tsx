@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { prompts } from '@/data/prompts';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchAutocompleteProps {
   onSearch: (query: string) => void;
@@ -19,9 +19,22 @@ export function SearchAutocomplete({ onSearch, placeholder = "Search prompts..."
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [allPrompts, setAllPrompts] = useState<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const navigate = useNavigate();
+
+  // Load prompts from database on mount
+  useEffect(() => {
+    const loadPrompts = async () => {
+      const { data } = await supabase
+        .from('prompts')
+        .select('id, title, tags')
+        .eq('status', 'published');
+      if (data) setAllPrompts(data);
+    };
+    loadPrompts();
+  }, []);
 
   const suggestions = useMemo(() => {
     if (!query.trim() || query.length < 2) return [];
@@ -31,7 +44,7 @@ export function SearchAutocomplete({ onSearch, placeholder = "Search prompts..."
     const seen = new Set<string>();
 
     // Search prompt titles
-    prompts.forEach((prompt) => {
+    allPrompts.forEach((prompt) => {
       if (prompt.title.toLowerCase().includes(searchTerm)) {
         const key = `prompt-${prompt.id}`;
         if (!seen.has(key)) {
@@ -47,25 +60,27 @@ export function SearchAutocomplete({ onSearch, placeholder = "Search prompts..."
     });
 
     // Search tags
-    prompts.forEach((prompt) => {
-      prompt.tags.forEach((tag) => {
-        if (tag.toLowerCase().includes(searchTerm)) {
-          const key = `tag-${tag}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            results.push({
-              type: 'tag',
-              value: tag,
-              label: `#${tag}`,
-            });
+    allPrompts.forEach((prompt) => {
+      if (prompt.tags) {
+        prompt.tags.forEach((tag: string) => {
+          if (tag.toLowerCase().includes(searchTerm)) {
+            const key = `tag-${tag}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              results.push({
+                type: 'tag',
+                value: tag,
+                label: `#${tag}`,
+              });
+            }
           }
-        }
-      });
+        });
+      }
     });
 
     // Limit results
     return results.slice(0, 8);
-  }, [query]);
+  }, [query, allPrompts]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
