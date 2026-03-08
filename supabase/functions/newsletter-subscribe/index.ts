@@ -196,7 +196,7 @@ serve(async (req: Request) => {
                 </div>
                 <div style="text-align: center; padding: 30px 20px;">
                   <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">
-                    © 2024 1Prompts. All rights reserved.
+                    © ${new Date().getFullYear()} 1Prompts. All rights reserved.
                   </p>
                   <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                     Don't want to receive these emails? 

@@ -128,6 +128,7 @@ export function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 text-foreground"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -195,7 +196,7 @@ export function Navbar() {
                     <Link to="/auth" onClick={() => setIsOpen(false)}>
                       <Button variant="ghost" className="justify-start w-full">Sign In</Button>
                     </Link>
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Link to="/auth?tab=signup" onClick={() => setIsOpen(false)}>
                       <Button className="btn-gradient w-full">Get Started</Button>
                     </Link>
                   </>

@@ -16,7 +16,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
 import { supabase } from '@/integrations/supabase/client';
-import { prompts } from '@/data/prompts';
+
 import { UserManagement } from '@/components/UserManagement';
 import { SubscriberManagement } from '@/components/SubscriberManagement';
 import { AdminCharts } from '@/components/AdminCharts';
@@ -126,8 +126,7 @@ export default function Admin() {
   };
 
   const getPromptTitle = (promptId: string) => {
-    const prompt = prompts.find(p => p.id === promptId);
-    return prompt?.title || promptId;
+    return promptId;
   };
 
   const formatDate = (dateString: string) => {

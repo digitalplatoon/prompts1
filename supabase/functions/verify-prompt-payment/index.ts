@@ -4,6 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // Allowed origins for CORS - restricts which domains can call this endpoint
 const allowedOrigins = [
+  'https://1prompts.com',
+  'https://prompts1.lovable.app',
   'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -131,6 +133,8 @@ serve(async (req) => {
       logStep("Sending confirmation email");
       
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const emailResponse = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-purchase-confirmation`,
           {
@@ -146,8 +150,10 @@ serve(async (req) => {
               price,
               purchaseDate: new Date().toISOString(),
             }),
+            signal: controller.signal,
           }
         );
+        clearTimeout(timeoutId);
         
         if (emailResponse.ok) {
           logStep("Confirmation email sent successfully");

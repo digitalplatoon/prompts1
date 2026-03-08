@@ -2,11 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
 
 const allowedOrigins = [
-  'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
+  'https://1prompts.com',
   'https://prompts1.lovable.app',
+  'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
@@ -151,6 +152,10 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
         </div>
       `;
+
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) throw new Error("RESEND_API_KEY is not configured");
+    const resend = new Resend(resendApiKey);
 
     const emailResponse = await resend.emails.send({
       from: "1Prompts <onboarding@resend.dev>",

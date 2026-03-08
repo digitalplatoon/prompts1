@@ -1,8 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const allowedOrigins = [
+  'https://1prompts.com',
+  'https://prompts1.lovable.app',
+  'https://2837ef4f-55c7-4cf3-94a1-b420d86aacbf.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 };
 
 // Content Security Policy configuration
@@ -70,6 +81,8 @@ const SECURITY_HEADERS = {
 };
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
   console.log("CSP headers request received");
 
   // Handle CORS preflight
@@ -78,9 +91,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Return the security headers configuration
-    // This can be used by the frontend to understand the CSP policy
-    // or integrated with a CDN/proxy for header injection
     return new Response(
       JSON.stringify({
         success: true,
