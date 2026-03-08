@@ -16,7 +16,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
 import { supabase } from '@/integrations/supabase/client';
-import { prompts } from '@/data/prompts';
+
 import { UserManagement } from '@/components/UserManagement';
 import { SubscriberManagement } from '@/components/SubscriberManagement';
 import { AdminCharts } from '@/components/AdminCharts';
