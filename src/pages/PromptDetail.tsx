@@ -174,23 +174,57 @@ const PromptDetail = () => {
   const displayRating = reviewCount > 0 ? averageRating : (prompt.average_rating ?? 0);
   const displayReviewCount = reviewCount > 0 ? reviewCount : (prompt.rating_count ?? 0);
 
-  const productSchema = {
+  const canonicalUrl = `https://1prompts.com/prompt/${prompt.slug}`;
+
+  const productSchema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: prompt.title,
     description: prompt.short_description,
+    url: canonicalUrl,
+    image: 'https://1prompts.com/og-image.png',
+    sku: prompt.slug,
+    brand: {
+      '@type': 'Brand',
+      name: '1Prompts',
+    },
+    category: category?.name || 'General',
     offers: {
       '@type': 'Offer',
+      url: canonicalUrl,
       price: priceInDollars,
       priceCurrency: prompt.currency?.toUpperCase() || 'USD',
       availability: 'https://schema.org/InStock',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: displayRating,
-      reviewCount: displayReviewCount,
+      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
   };
+
+  if (displayReviewCount > 0) {
+    productSchema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: displayRating.toFixed(1),
+      reviewCount: displayReviewCount,
+      bestRating: 5,
+      worstRating: 1,
+    };
+
+    if (reviews.length > 0) {
+      productSchema.review = reviews.slice(0, 5).map((review) => ({
+        '@type': 'Review',
+        author: {
+          '@type': 'Person',
+          name: review.profile?.display_name || 'Anonymous',
+        },
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: review.rating,
+          bestRating: 5,
+        },
+        reviewBody: review.comment,
+        datePublished: review.created_at,
+      }));
+    }
+  }
 
   const handleCopyPreview = () => {
     navigator.clipboard.writeText(prompt.preview);
@@ -270,7 +304,7 @@ const PromptDetail = () => {
       <SEO
         title={prompt.title}
         description={prompt.short_description}
-        canonical={`https://1prompts.com/prompt/${prompt.slug}`}
+        canonical={canonicalUrl}
         ogType="product"
         product={{ price: parseFloat(priceInDollars), currency: prompt.currency?.toUpperCase() || 'USD' }}
         structuredData={productSchema}
