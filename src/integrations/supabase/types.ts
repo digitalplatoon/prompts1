@@ -329,6 +329,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_admin_prompt_full: {
+        Args: { p_prompt_id: string }
+        Returns: {
+          full_prompt: string
+        }[]
+      }
       get_public_reviews: {
         Args: { p_prompt_id: string }
         Returns: {
