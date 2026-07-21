@@ -102,14 +102,23 @@ export function AdminPromptManager() {
     });
   }, [prompts, statusFilter, search]);
 
-  const handleEdit = (p: PromptRow) => {
+  const handleEdit = async (p: PromptRow) => {
+    setLoadingEdit(true);
+    // Fetch full_prompt via admin-only RPC (column is not directly readable)
+    const { data, error } = await supabase.rpc('get_admin_prompt_full', { p_prompt_id: p.id });
+    setLoadingEdit(false);
+    if (error) {
+      toast.error('Failed to load prompt content');
+      return;
+    }
+    const fullPrompt = (data as any)?.[0]?.full_prompt ?? '';
     setEditingPrompt({
       id: p.id,
       title: p.title,
       slug: p.slug,
       short_description: p.short_description,
       preview: p.preview,
-      full_prompt: p.full_prompt,
+      full_prompt: fullPrompt,
       category_id: p.category_id,
       price_cents: p.price_cents,
       tags: p.tags || [],
