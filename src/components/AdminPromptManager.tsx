@@ -105,7 +105,7 @@ export function AdminPromptManager() {
   const handleEdit = async (p: PromptRow) => {
     setLoadingEdit(true);
     // Fetch full_prompt via admin-only RPC (column is not directly readable)
-    const { data, error } = await supabase.rpc('get_admin_prompt_full', { p_prompt_id: p.id });
+    const { data, error } = await (supabase as any).rpc('get_admin_prompt_full', { p_prompt_id: p.id });
     setLoadingEdit(false);
     if (error) {
       toast.error('Failed to load prompt content');
