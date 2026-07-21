@@ -40,7 +40,6 @@ interface PromptRow {
   slug: string;
   short_description: string;
   preview: string;
-  full_prompt: string;
   category_id: string | null;
   price_cents: number;
   tags: string[] | null;
@@ -50,6 +49,11 @@ interface PromptRow {
   is_featured: boolean | null;
   created_at: string;
 }
+
+// Columns admins fetch for the list view. full_prompt is intentionally excluded
+// (revoked at the column level) and loaded on demand via a secure RPC when editing.
+const ADMIN_LIST_COLUMNS =
+  'id, title, slug, short_description, preview, category_id, price_cents, tags, usage_instructions, example_outputs, status, is_featured, created_at';
 
 export function AdminPromptManager() {
   const [prompts, setPrompts] = useState<PromptRow[]>([]);
@@ -61,19 +65,20 @@ export function AdminPromptManager() {
   const [editingPrompt, setEditingPrompt] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const fetchPrompts = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('prompts')
-      .select('*')
+      .select(ADMIN_LIST_COLUMNS)
       .order('created_at', { ascending: false });
 
     if (error) {
       toast.error('Failed to load prompts');
       console.error(error);
     } else {
-      setPrompts(data || []);
+      setPrompts((data as PromptRow[]) || []);
     }
     setLoading(false);
   };
@@ -97,14 +102,23 @@ export function AdminPromptManager() {
     });
   }, [prompts, statusFilter, search]);
 
-  const handleEdit = (p: PromptRow) => {
+  const handleEdit = async (p: PromptRow) => {
+    setLoadingEdit(true);
+    // Fetch full_prompt via admin-only RPC (column is not directly readable)
+    const { data, error } = await (supabase as any).rpc('get_admin_prompt_full', { p_prompt_id: p.id });
+    setLoadingEdit(false);
+    if (error) {
+      toast.error('Failed to load prompt content');
+      return;
+    }
+    const fullPrompt = (data as any)?.[0]?.full_prompt ?? '';
     setEditingPrompt({
       id: p.id,
       title: p.title,
       slug: p.slug,
       short_description: p.short_description,
       preview: p.preview,
-      full_prompt: p.full_prompt,
+      full_prompt: fullPrompt,
       category_id: p.category_id,
       price_cents: p.price_cents,
       tags: p.tags || [],
