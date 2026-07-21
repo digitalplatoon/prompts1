@@ -304,7 +304,7 @@ const PromptDetail = () => {
       <SEO
         title={prompt.title}
         description={prompt.short_description}
-        canonical={`https://1prompts.com/prompt/${prompt.slug}`}
+        canonical={canonicalUrl}
         ogType="product"
         product={{ price: parseFloat(priceInDollars), currency: prompt.currency?.toUpperCase() || 'USD' }}
         structuredData={productSchema}
