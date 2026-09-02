@@ -24,8 +24,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="1Prompts - Premium AI Prompts for ChatGPT, Midjourney & More"
-        description="Discover 10,000+ premium AI prompts for ChatGPT, Midjourney, Claude, and more. Boost your productivity with professionally crafted prompts. Browse, buy, and sell AI prompts."
+        title="1Prompts - Premium AI Prompts Marketplace"
+        description="Discover premium AI prompts for ChatGPT, Midjourney, and Claude. Professionally crafted prompts you can browse, buy, and sell."
         canonical="https://1prompts.com/"
       />
       <Navbar />
