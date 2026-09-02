@@ -38,12 +38,54 @@ interface PurchaseEmailRequest {
   purchaseDate: string;
 }
 
+// Simple in-memory rate limiting (per IP), resets on cold start
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+const getClientIp = (req: Request): string =>
+  req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+  req.headers.get("x-real-ip") ||
+  "unknown";
+
+const checkRateLimit = (ip: string): boolean => {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) return false;
+  record.count++;
+  return true;
+};
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // This function is internal-only: it may only be invoked server-to-server
+  // (e.g. by verify-prompt-payment) using the service role key.
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!serviceRoleKey || token !== serviceRoleKey) {
+    logStep("Unauthorized invocation blocked");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!checkRateLimit(getClientIp(req))) {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -55,17 +97,22 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey);
 
     const { email, promptTitle, promptCategory, price, purchaseDate }: PurchaseEmailRequest = await req.json();
-    logStep("Request data", { promptTitle, promptCategory });
+    logStep("Request data", { promptCategory });
 
-    if (!email || !promptTitle) {
-      throw new Error("Missing required fields: email, promptTitle");
+    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+      throw new Error("Invalid email");
     }
+    if (!promptTitle || typeof promptTitle !== "string" || promptTitle.length > 200) {
+      throw new Error("Invalid promptTitle");
+    }
+
 
     // Sanitize user-provided content
     const safeTitle = escapeHtml(promptTitle);
     const safeCategory = escapeHtml(promptCategory || "General");
 
-    const formattedPrice = `$${price.toFixed(2)}`;
+    const safePrice = typeof price === "number" && isFinite(price) && price >= 0 ? price : 0;
+    const formattedPrice = `$${safePrice.toFixed(2)}`;
     const formattedDate = new Date(purchaseDate).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -178,7 +225,7 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "Failed to send confirmation email" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
