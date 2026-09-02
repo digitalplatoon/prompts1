@@ -165,6 +165,7 @@ const Browse = () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    aria-label="Previous page"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                   >
