@@ -88,7 +88,7 @@ const PromptDetail = () => {
         .from('purchased_prompts')
         .select('id')
         .eq('user_id', user.id)
-        .or(`prompt_id.eq.${prompt.id},prompt_id.eq.${id}`)
+        .in('prompt_id', [prompt.id, id].filter(Boolean) as string[])
         .maybeSingle();
 
       const purchased = !!data;

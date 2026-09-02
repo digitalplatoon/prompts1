@@ -3,6 +3,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
+/**
+ * Strips characters that are syntax separators in PostgREST's filter
+ * mini-language so user input can never inject extra filter clauses.
+ */
+export function sanitizeFilterValue(value: string): string {
+  return value
+    .trim()
+    .replace(/[,().:*"'\\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .slice(0, 100)
+    .trim();
+}
+
 // Re-export types from Supabase schema
 export type PromptCategory = Tables<"prompt_categories">;
 export type Prompt = Tables<"prompts">;
@@ -133,7 +146,7 @@ export async function getPublishedPrompts(options: GetPromptsOptions = {}): Prom
 
   // Search filter (title and short_description)
   if (search?.trim()) {
-    const searchTerm = `%${search.trim()}%`;
+    const searchTerm = `%${sanitizeFilterValue(search)}%`;
     query = query.or(`title.ilike.${searchTerm},short_description.ilike.${searchTerm}`);
   }
 
@@ -292,7 +305,7 @@ export async function countPublishedPrompts(options: Omit<GetPromptsOptions, "li
   }
 
   if (search?.trim()) {
-    const searchTerm = `%${search.trim()}%`;
+    const searchTerm = `%${sanitizeFilterValue(search)}%`;
     query = query.or(`title.ilike.${searchTerm},short_description.ilike.${searchTerm}`);
   }
 
