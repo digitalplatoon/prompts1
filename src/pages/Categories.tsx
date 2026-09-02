@@ -12,8 +12,8 @@ const Categories = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="AI Prompt Categories - Find Prompts by Tool & Use Case"
-        description="Browse AI prompts by category. Find prompts for ChatGPT, Midjourney, Claude, DALL-E, and more. Categories include writing, coding, marketing, and creative prompts."
+        title="AI Prompt Categories by Tool & Use Case"
+        description="Browse AI prompts by category: ChatGPT, Midjourney, Claude, DALL-E, plus writing, coding, marketing, and creative prompts."
         canonical="https://1prompts.com/categories"
       />
       <Navbar />
