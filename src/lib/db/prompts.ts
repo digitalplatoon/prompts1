@@ -3,7 +3,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
-// Re-/**
+/**
  * Strips characters that are syntax separators in PostgREST's filter
  * mini-language so user input can never inject extra filter clauses.
  */
@@ -16,7 +16,7 @@ export function sanitizeFilterValue(value: string): string {
     .trim();
 }
 
-export types from Supabase schema
+// Re-export types from Supabase schema
 export type PromptCategory = Tables<"prompt_categories">;
 export type Prompt = Tables<"prompts">;
 
