@@ -1,9 +1,15 @@
+import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
 const Refunds = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Refund Policy"
+        description="Learn when 1Prompts issues refunds on digital AI prompt purchases, how to request one, and typical processing timelines."
+        canonical="https://1prompts.com/refunds"
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 py-16 max-w-4xl">
