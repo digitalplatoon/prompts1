@@ -1,0 +1,25 @@
+# 1Prompts
+
+> A marketplace for premium, professionally crafted AI prompts for ChatGPT, Midjourney, Claude, and other AI tools.
+
+1Prompts lets people browse and buy ready-to-use prompts by category, tool, and use case, and lets creators submit their own prompts for sale.
+
+## Pages
+
+- [Home](/): Featured prompts and an overview of the marketplace.
+- [Browse](/browse): Search and filter all published prompts by category, price, and rating.
+- [Categories](/categories): Prompt categories by AI tool and use case.
+- [Pricing](/pricing): Plans and pricing for buyers.
+- [API](/api): REST API documentation for accessing prompts.
+- [Blog](/blog): Articles on prompt engineering and AI workflows.
+- [Submit a prompt](/submit-prompt): How creators can submit prompts for review.
+- [About](/about): What 1Prompts is and who builds it.
+- [Contact](/contact): How to reach the team.
+- [Security](/security): Security practices for the platform.
+- [Careers](/careers): Open roles.
+
+## Optional
+
+- [Privacy Policy](/privacy): How personal data is collected and used.
+- [Terms](/terms): Terms of service.
+- [Refund Policy](/refunds): Refund eligibility and process for digital purchases.
