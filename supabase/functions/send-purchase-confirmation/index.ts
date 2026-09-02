@@ -111,7 +111,8 @@ serve(async (req) => {
     const safeTitle = escapeHtml(promptTitle);
     const safeCategory = escapeHtml(promptCategory || "General");
 
-    const formattedPrice = `$${price.toFixed(2)}`;
+    const safePrice = typeof price === "number" && isFinite(price) && price >= 0 ? price : 0;
+    const formattedPrice = `$${safePrice.toFixed(2)}`;
     const formattedDate = new Date(purchaseDate).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
