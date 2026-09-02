@@ -95,8 +95,8 @@ const Browse = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Browse AI Prompts - ChatGPT, Claude, Midjourney Templates"
-        description="Explore our curated collection of premium AI prompts. Filter by category, price, and rating to find the perfect prompt for ChatGPT, Claude, Midjourney, and more."
+        title="Browse AI Prompts by Tool & Category"
+        description="Explore premium AI prompts. Filter by category, price, and rating to find the right prompt for ChatGPT, Claude, or Midjourney."
         canonical="https://1prompts.com/browse"
       />
       <Navbar />
@@ -165,6 +165,7 @@ const Browse = () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    aria-label="Previous page"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                   >
@@ -208,6 +209,7 @@ const Browse = () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    aria-label="Next page"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
                   >

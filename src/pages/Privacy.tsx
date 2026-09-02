@@ -1,9 +1,15 @@
+import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
 const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Privacy Policy"
+        description="How 1Prompts collects, uses, and protects your personal data, including payments, cookies, and your privacy rights."
+        canonical="https://1prompts.com/privacy"
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 py-16 max-w-4xl">

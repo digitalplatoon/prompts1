@@ -2,7 +2,6 @@
 // Run with: npx tsx scripts/generate-sitemap.ts
 
 const BASE_URL = 'https://1prompts.com';
-const TODAY = new Date().toISOString().split('T')[0];
 
 // Blog posts (mirrors src/data/blogPosts.ts)
 const blogPosts = [
@@ -26,16 +25,16 @@ const staticPages = [
   { path: '/contact', priority: '0.6', changefreq: 'monthly' },
   { path: '/api', priority: '0.7', changefreq: 'monthly' },
   { path: '/careers', priority: '0.5', changefreq: 'monthly' },
+  { path: '/security', priority: '0.5', changefreq: 'monthly' },
   { path: '/submit-prompt', priority: '0.5', changefreq: 'monthly' },
   { path: '/privacy', priority: '0.3', changefreq: 'yearly' },
   { path: '/terms', priority: '0.3', changefreq: 'yearly' },
   { path: '/refunds', priority: '0.3', changefreq: 'yearly' },
 ];
 
-function generateUrl(loc: string, lastmod: string, changefreq: string, priority: string): string {
+function generateUrl(loc: string, changefreq: string, priority: string): string {
   return `  <url>
     <loc>${BASE_URL}${loc}</loc>
-    <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`;
@@ -47,7 +46,7 @@ function generateSitemap(): string {
   // Add static pages
   urls.push('  <!-- Main Pages -->');
   for (const page of staticPages) {
-    urls.push(generateUrl(page.path, TODAY, page.changefreq, page.priority));
+    urls.push(generateUrl(page.path, page.changefreq, page.priority));
   }
 
   // Note: Prompt detail pages should be generated dynamically from the database
@@ -58,7 +57,7 @@ function generateSitemap(): string {
   // Add blog posts
   urls.push('\n  <!-- Blog Posts -->');
   for (const post of blogPosts) {
-    urls.push(generateUrl(`/blog/${post.slug}`, TODAY, 'monthly', '0.7'));
+    urls.push(generateUrl(`/blog/${post.slug}`, 'monthly', '0.7'));
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
